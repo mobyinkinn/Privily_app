@@ -648,6 +648,8 @@ const BookingScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
+  const [showendTime, setshowendTime] = useState(false)
+  const [showStarttime, setshowStarttime] = useState(false)
   const [errors, setErrors] = useState({});
   const [selectingEndTime, setSelectingEndTime] = useState(false);
   const [timeSlots, setTimeSlots] = useState([]);
@@ -660,6 +662,9 @@ const BookingScreen = () => {
   const [rate, setRate] = useState();
   const [timeSlotError, setTimeSlotError] = useState('');
   const [isDoneDisabled, setIsDoneDisabled] = useState(false);
+
+  const [isStartDoneDisabled, setIsStartDoneDisabled] = useState(true);
+  const [isEndDoneDisabled, setIsEndDoneDisabled] = useState(false);
   const [shortDescription, setShortDescription] = useState('');
   const [amount, setAmount] = useState('');
   useEffect(() => {
@@ -678,6 +683,7 @@ const BookingScreen = () => {
       const {product_availability} = response.data;
       setBookedSlots(product_availability.slot_bookings);
       generateTimeSlots();
+      // console.log('bookedSlots', bookedSlots);
     } catch (error) {
       console.error('Error fetching availability:', error);
     }
@@ -829,11 +835,11 @@ const BookingScreen = () => {
       }
     } else {
       if (selectingEndTime) {
-        if (newSelectedSlots.length === 1) {
+        // if (newSelectedSlots.length === 1) {
           newSelectedSlots.push(slot);
-        } else {
-          newSelectedSlots[newSelectedSlots.length - 1] = slot;
-        }
+        // } else {
+        //   newSelectedSlots[newSelectedSlots.length - 1] = slot;
+        // }
         const startSlotIndex = timeSlots.indexOf(newSelectedSlots[0]);
         const endSlotIndex = timeSlots.indexOf(
           newSelectedSlots[newSelectedSlots.length - 1],
@@ -842,7 +848,7 @@ const BookingScreen = () => {
       } else {
         newSelectedSlots.length = 0;
         newSelectedSlots.push(slot);
-        setSelectingEndTime(true);
+        // setSelectingEndTime(true);
       }
     }
 
@@ -873,11 +879,29 @@ const BookingScreen = () => {
     }
   };
 
+const selectEndTime = () => {
+  setshowendTime(false);
+  setSelectingEndTime(true);
+}
+
   const validateTimeSlots = slots => {
     if (slots.length > 0) {
       const startTime = slots[0];
       const endTime = slots[slots.length - 1];
       const duration = calculateDuration(startTime, endTime);
+      console.log(selectedTimeSlots.length)
+
+      if(selectedTimeSlots.length >= 0){
+        setIsStartDoneDisabled(false);
+      }else{
+        setIsStartDoneDisabled(true)
+      }
+
+      if(selectedTimeSlots.length > 0){
+        setIsEndDoneDisabled(false);
+      }else{
+        setIsEndDoneDisabled(true)
+      }
 
       if (duration <= 0) {
         setIsDoneDisabled(true);
@@ -930,6 +954,45 @@ const BookingScreen = () => {
   //   );
   // };
 
+
+  const renderStartTimeSlot = ({item, index}) => {
+    const currentTime = moment(); // Get the current time
+    const slotTime = moment(date).set({
+      hour: parseInt(item.split(':')[0]),
+      minute: parseInt(item.split(':')[1]),
+    });
+
+    // Calculate the end time of the slot
+    const slotEndTime = slotTime.clone().add(15, 'minutes');
+
+    // Check if the slot is in the past or currently active
+    const isPast = currentTime.isSameOrAfter(slotEndTime);
+
+    // Check if the slot is booked based on the updated state
+    const isBooked = bookedSlots[index];
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.timeSlot,
+          selectedTimeSlots.includes(item) && styles.selectedTimeSlot,
+          (isBooked || isPast) && styles.bookedTimeSlot,
+        ]}
+        onPress={() => !isBooked && !isPast && handleTimeSlotPress(item)}
+        disabled={isBooked || isPast} // Disable slot if booked or past
+      >
+        <Text
+          style={[
+            styles.timeSlotText,
+            selectedTimeSlots.includes(item) && styles.selectedTimeSlotText,
+            (isBooked || isPast) && styles.bookedTimeSlotText,
+          ]}>
+          {item}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   const renderTimeSlot = ({item, index}) => {
     const currentTime = moment(); // Get the current time
     const slotTime = moment(date).set({
@@ -968,11 +1031,18 @@ const BookingScreen = () => {
     );
   };
 
-  const getSelectedTimeSlotsText = () => {
+  const getStartSelectedTimeSlotsText = (str) => {
     if (selectedTimeSlots.length === 0) {
-      return 'Select an Available Time Slot';
+      return str;
     }
-    return `${selectedTimeSlots[0]} - ${
+    return `${selectedTimeSlots[0]}`;
+  };
+
+  const getEndSelectedTimeSlotsText = str => {
+    if (selectedTimeSlots.length < 2) {
+      return str;
+    }
+    return `${
       selectedTimeSlots[selectedTimeSlots.length - 1]
     }`;
   };
@@ -1088,18 +1158,58 @@ const BookingScreen = () => {
 
       <TouchableOpacity
         style={styles.dropdownContainer}
-        onPress={() => setShowTimeSlots(true)}>
-        <Text style={styles.pickerText}>{getSelectedTimeSlotsText()}</Text>
+        onPress={() => setshowStarttime(true)}>
+        <Text style={styles.pickerText}>
+          {getStartSelectedTimeSlotsText('Select start time')}
+        </Text>
       </TouchableOpacity>
       {errors.timeSlots && (
         <Text style={styles.errorText}>{errors.timeSlots}</Text>
       )}
-
+      <TouchableOpacity
+        style={styles.dropdownContainer}
+        onPress={() => setshowendTime(true)}>
+        <Text style={styles.pickerText}>
+          {getEndSelectedTimeSlotsText('Select end time')}
+        </Text>
+      </TouchableOpacity>
+      {errors.timeSlots && (
+        <Text style={styles.errorText}>{errors.timeSlots}</Text>
+      )}
       <Modal
-        visible={showTimeSlots}
+        visible={showStarttime}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setShowTimeSlots(false)}>
+        onRequestClose={() => setshowStarttime(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeader}>Select Time Slots</Text>
+            {timeSlotError ? (
+              <Text style={styles.errorText}>{timeSlotError}</Text>
+            ) : null}
+            <FlatList
+              data={timeSlots}
+              keyExtractor={item => item}
+              numColumns={4}
+              renderItem={renderStartTimeSlot}
+            />
+            <TouchableOpacity
+              style={[
+                styles.modalCloseButton,
+                isStartDoneDisabled && styles.disabledButton,
+              ]}
+              onPress={() => setshowStarttime(false)}
+              disabled={isStartDoneDisabled}>
+              <Text style={styles.modalCloseButtonText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={showendTime}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setshowendTime(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalHeader}>Select Time Slots</Text>
@@ -1115,16 +1225,15 @@ const BookingScreen = () => {
             <TouchableOpacity
               style={[
                 styles.modalCloseButton,
-                isDoneDisabled && styles.disabledButton,
+                isEndDoneDisabled && styles.disabledButton,
               ]}
-              onPress={() => setShowTimeSlots(false)}
-              disabled={isDoneDisabled}>
+              onPress={() => selectEndTime()}
+              disabled={isEndDoneDisabled}>
               <Text style={styles.modalCloseButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-
       <TextInput
         style={styles.input}
         placeholder="Enter the short description (Optional)"
