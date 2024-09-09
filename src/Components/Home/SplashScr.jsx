@@ -413,7 +413,10 @@ const SplashScr = () => {
         },
       );
 
-      navigation.navigate('SplashScreen2', {phoneNumber: fullPhoneNumber});
+      navigation.navigate('SplashScreen2', {
+        phoneNumber: fullPhoneNumber,
+        handleSubmite,
+      });
       console.log('response', response);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -435,7 +438,7 @@ const SplashScr = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmite = () => {
     if (validateInput()) {
       fetchOtpdata();
     }
@@ -466,7 +469,7 @@ const SplashScr = () => {
           />
           {!!error && <Text style={styles.errorText}>{error}</Text>}
         </View>
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <TouchableOpacity style={styles.button} onPress={handleSubmite}>
           <Text style={styles.buttonText}>Let's Get Started</Text>
         </TouchableOpacity>
       </View>

@@ -87,6 +87,8 @@ const PodDetailPage = () => {
     fetchData();
     fetchFeatures();
   }, [slug]);
+  console.log('podData', podData);
+
 const req = [
   {
     name: 'Booking Requirements',
@@ -102,6 +104,7 @@ const req = [
   },
 ];
   const renderItem = ({item}) => {
+    console.log("item",item)
     return (
       <View style={styles.imageContainer}>
         <Image
@@ -122,7 +125,7 @@ const req = [
   const images = podData?.images || [];
   const location = podData?.location;
   const locationText = location
-    ? `${location.name}, ${location.city}, ${location.state}, ${location.country_code}, ${location.zip}`
+    ? `${location.name}, ${location.Street}, ${location.city}, ${location.state}, ${location.country_code}, ${location.zip}`
     : '';
   console.log('images', images);
 
@@ -194,7 +197,7 @@ const req = [
                 flexDirection: 'row',
                 alignItems: 'center',
               }}>
-              <Text style={styles.rating}>{podData.rating}</Text>
+              <Text style={styles.rating}>{podData.totalRating}</Text>
               <Icon name={'star'} size={20} color={'#fff'} />
             </TouchableOpacity>
             <TouchableOpacity
@@ -324,7 +327,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   locationText: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'gray',
     letterSpacing: 2,
   },

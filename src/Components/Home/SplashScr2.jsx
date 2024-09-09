@@ -317,7 +317,7 @@ const SplashScr2 = () => {
   const {handleSubmit, setCode, code} = useContext(AuthContext);
   const navigation = useNavigation();
   const route = useRoute();
-  const {phoneNumber} = route.params;
+  const {phoneNumber, handleSubmite} = route.params;
   const handleBackHome = () => {
     navigation.goBack();
   };
@@ -367,7 +367,7 @@ const SplashScr2 = () => {
             />
           ))}
         </View>
-        <TouchableOpacity style={styles.resendButton}>
+        <TouchableOpacity style={styles.resendButton} onPress={handleSubmite}>
           <Text style={styles.resendButtonText}>Resend Code</Text>
         </TouchableOpacity>
         <TouchableOpacity
