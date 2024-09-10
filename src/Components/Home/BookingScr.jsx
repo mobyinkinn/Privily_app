@@ -830,9 +830,9 @@ const BookingScreen = () => {
     if (newSelectedSlots.includes(slot)) {
       const index = newSelectedSlots.indexOf(slot);
       newSelectedSlots.splice(index, 1);
-      if (selectingEndTime && index === newSelectedSlots.length) {
-        setSelectingEndTime(false);
-      }
+      // if (selectingEndTime && index === newSelectedSlots.length) {
+      //   setSelectingEndTime(false);
+      // }
     } else {
       if (selectingEndTime) {
         // if (newSelectedSlots.length === 1) {
@@ -1198,7 +1198,7 @@ const selectEndTime = () => {
                 styles.modalCloseButton,
                 isStartDoneDisabled && styles.disabledButton,
               ]}
-              onPress={() => setshowStarttime(false)}
+              onPress={() => {setshowStarttime(false); setSelectingEndTime(true)}}
               disabled={isStartDoneDisabled}>
               <Text style={styles.modalCloseButtonText}>Done</Text>
             </TouchableOpacity>
@@ -1227,7 +1227,7 @@ const selectEndTime = () => {
                 styles.modalCloseButton,
                 isEndDoneDisabled && styles.disabledButton,
               ]}
-              onPress={() => selectEndTime()}
+              onPress={() =>setshowendTime(false)}
               disabled={isEndDoneDisabled}>
               <Text style={styles.modalCloseButtonText}>Done</Text>
             </TouchableOpacity>

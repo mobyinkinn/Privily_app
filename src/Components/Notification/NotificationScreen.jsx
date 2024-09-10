@@ -45,14 +45,15 @@ const NotificationScreen = () => {
   };
   const handleCardPress = (notification)=> {
     setSelectedNotification(notification);
+ console.log('sele', notification);
+
     setModalVisible(true);
   };
- console.log("sele",selectedNotification)
 
  const handleRatingSubmit = async () => {
    try {
      const response = await axios.put(
-       `http://10.0.2.2:4000/api/user/rate-booking/${selectedNotification.booking_id}`,
+       `http://10.0.2.2:4000/api/user/rate/${selectedNotification.booking_id}/${selectedNotification.podId}`,
        {message: feedback, rating},
        {
          headers: {
