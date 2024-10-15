@@ -22,7 +22,7 @@ const Popup = ({
 }) => {
   const [nextSlots, setNextSlots] = useState([]);
   const {getNextFalseSlots, extendBooking} = useContext(AuthContext);
-
+console.log('getNextFalseSlots', getNextFalseSlots);
   useEffect(() => {
     if (availability.length > 0 && endTime) {
       const endTimeIndex = availability.indexOf(true); // Get the index of the end time slot
@@ -30,7 +30,9 @@ const Popup = ({
         availability,
         endTimeIndex,
       );
-      setNextSlots(continuousFalseSlots.slice(0, 8)); // Limit to maximum 8 slots
+      console.log('continuousFalseSlots', continuousFalseSlots);
+      setNextSlots(continuousFalseSlots); // Limit to maximum 8 slots
+      console.log('nextSlots', nextSlots);
     }
   }, [availability, endTime, getNextFalseSlots]);
 

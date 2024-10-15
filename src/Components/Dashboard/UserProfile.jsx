@@ -146,7 +146,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const {userToken} = useContext(AuthContext);
-
+console.log('userToken', userToken);
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
@@ -195,7 +195,7 @@ const UserProfile = () => {
       </View> */}
       <View style={styles.profileContainer}>
         <Image
-          source={{uri: 'https://via.placeholder.com/100'}} 
+          source={{uri: 'https://via.placeholder.com/100'}}
           style={styles.profileImage}
         />
         <Text style={styles.username}>
@@ -215,7 +215,7 @@ const UserProfile = () => {
       </View>
       <View style={styles.infoContainer}>
         <Text style={styles.label}>Mobile Number</Text>
-        <Text style={styles.value}>{profileData.mobile}</Text>
+        <Text style={styles.value}>{profileData.phoneNumber}</Text>
       </View>
     </View>
   );

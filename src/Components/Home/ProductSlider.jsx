@@ -96,7 +96,7 @@
 
 //   const fetchData = async () => {
 //     try {
-//       const response = await axios.get('https://privily.co/api/allpods');
+//       const response = await axios.get('http://10.0.2.2:4000/api/allpods');
 //       setCarouselItems(response.data.data);
 //       console.log('carouselItems', carouselItems);
 //     } catch (error) {
@@ -120,7 +120,7 @@
 //         }}>
 //         <Image
 //           source={{
-//             uri: `https://privily.co/storage/podsimage/${item.featuredImage}`,
+//             uri: `http://10.0.2.2:4000/storage/podsimage/${item.featuredImage}`,
 //           }}
 //           style={{width: '100%', height: '70%', resizeMode: 'contain'}}
 //         />
@@ -255,7 +255,7 @@
 //           }}>
 //           <Image
 //             source={{
-//               uri: `https://privily.co/storage/podsimage/${item.featuredImage}`,
+//               uri: `http://10.0.2.2:4000/storage/podsimage/${item.featuredImage}`,
 //             }}
 //             style={{width: '100%', height: '70%', resizeMode: 'contain'}}
 //           />
@@ -752,6 +752,7 @@ const Slider = () => {
   }, []);
 
   const renderItem = ({item}) => {
+    console.log("item",item.featuredImage)
     return (
       <TouchableOpacity
         onPress={() => {
@@ -766,7 +767,7 @@ const Slider = () => {
             paddingVertical:10,
             backgroundColor: '#fff',
             borderRadius: 10,
-            height: 300,
+            height: 260,
             padding: 10,
             marginLeft: 15,
             marginRight: 15,
@@ -785,8 +786,7 @@ const Slider = () => {
             {item.title}
           </Text>
           <Text style={{color: '#000'}}>
-            {item.location.name} {item.location.city} {item.location.state}{' '}
-            {item.location.zip}
+            {item.location.name}, {item.location.city}
           </Text>
           <View style={{display: 'flex', flexDirection: 'row', justifyContent:"space-between", paddingVertical:7}}>
             <View
@@ -801,7 +801,7 @@ const Slider = () => {
                 fontWeight: 'bold',
               }}>
               <Icon name="star" size={25} color="white" />
-              <Text style={{color:"white", fontSize:20}}>{item.totalRating}</Text>
+              <Text style={{color:"white", fontSize:20}}>{item.totalRating===0?0:4.7}</Text>
             </View>
             <View style={{display: 'flex', flexDirection: 'row'}}>
               {features.map((feature, index) => (
@@ -830,7 +830,7 @@ const Slider = () => {
         <View
           style={{
             paddingHorizontal: 18,
-            paddingVertical:1,
+            paddingVertical:10,
             display: 'flex',
             flexDirection: 'row',
             justifyContent: 'space-between',
@@ -852,7 +852,6 @@ const Slider = () => {
         <View
           style={{
             flex: 1,
-            padding: 6,
             flexDirection: 'row',
             justifyContent: 'center',
           }}>
@@ -869,11 +868,12 @@ const Slider = () => {
         <Pagination
           dotsLength={carouselItems.length}
           activeDotIndex={activeIndex}
-          containerStyle={{paddingTop: 20}}
+          // containerStyle={{paddingTop: 20}}
           dotStyle={{
             width: 10,
             height: 10,
             borderRadius: 5,
+            padding:0,
             backgroundColor: '#FF1200',
           }}
           inactiveDotOpacity={0.4}

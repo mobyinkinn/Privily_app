@@ -2151,6 +2151,7 @@ import axios from 'axios';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import {AuthContext} from '../../context/Authcontext';
 import {Linking} from 'react-native';
+import moment from 'moment-timezone';
 const HomeScreen = () => {
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -2178,18 +2179,87 @@ const HomeScreen = () => {
     });
   };
 
-  const getLocation = () => {
-    Geolocation.getCurrentPosition(
-      position => {
-        const {latitude, longitude} = position.coords;
-        setUserLocation({latitude, longitude});
-      },
-      error => {
-        console.warn(error);
-      },
-      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
-    );
-  };
+  // const getLocation = () => {
+  //   Geolocation.getCurrentPosition(
+  //     position => {
+  //       const {latitude, longitude} = position.coords;
+  //       setUserLocation({latitude, longitude});
+  //     },
+  //     error => {
+  //       console.warn(error);
+  //     },
+  //     {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+  //   );
+  // };
+  // const getLocation = () => {
+  //   Geolocation.getCurrentPosition(
+  //     position => {
+  //       const {
+  //         latitude,
+  //         longitude,
+  //         altitude,
+  //         accuracy,
+  //         altitudeAccuracy,
+  //         heading,
+  //         speed,
+  //       } = position.coords;
+
+  //       console.log('Latitude:', latitude);
+  //       console.log('Longitude:', longitude);
+  //       console.log('Altitude:', altitude);
+  //       console.log('Accuracy:', accuracy);
+  //       console.log('Altitude Accuracy:', altitudeAccuracy);
+  //       console.log('Heading:', heading);
+  //       console.log('Speed:', speed);
+
+  //       setUserLocation({latitude, longitude});
+  //     },
+  //     error => {
+  //       console.warn(error);
+  //     },
+  //     {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+  //   );
+  // };
+const getTimezone = () => {
+  const timeZone = moment.tz.guess();
+  console.log('Detected Timezone:', timeZone);
+};
+
+// Function to get the user's location
+const getLocation = () => {
+  Geolocation.getCurrentPosition(
+    position => {
+      const {
+        latitude,
+        longitude,
+        altitude,
+        accuracy,
+        altitudeAccuracy,
+        heading,
+        speed,
+      } = position.coords;
+
+      // Log location data
+      console.log('Latitude:', latitude);
+      console.log('Longitude:', longitude);
+      console.log('Altitude:', altitude);
+      console.log('Accuracy:', accuracy);
+      console.log('Altitude Accuracy:', altitudeAccuracy);
+      console.log('Heading:', heading);
+      console.log('Speed:', speed);
+
+      // Set the user location (if you need this for state management)
+      setUserLocation({latitude, longitude});
+
+      // Call the timezone function with latitude and longitude
+      getTimezone(latitude, longitude);
+    },
+    error => {
+      console.warn(error);
+    },
+    {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+  );
+};
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
@@ -2205,7 +2275,7 @@ const HomeScreen = () => {
           },
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('You can use the location');
+          console.log('Yoxu can use the location');
           getLocation();
         } else {
           console.log('Location permission denied');
@@ -2319,9 +2389,7 @@ const HomeScreen = () => {
 
           {/* Main content */}
           {isLoading ? (
-            <ShimmerPlaceholder
-              style={{width: '100%', height: 200, marginBottom: 20}}
-            />
+            <ShimmerPlaceholder style={{width: '100%', height: 200}} />
           ) : (
             <>
               <Slider2 data={carouselData} />
@@ -2332,10 +2400,15 @@ const HomeScreen = () => {
           {/* Corporate Pods */}
           <TouchableOpacity
             onPress={() => setModalVisible(true)}
-            style={{display: 'flex', alignItems: 'center', paddingTop: 10}}>
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              paddingBottom: 20,
+              marginTop: -10,
+            }}>
             {isLoading ? (
               <ShimmerPlaceholder
-                style={{width: '90%', height: 200, borderRadius: 10}}
+                style={{width: '90%', height: 250, borderRadius: 10}}
               />
             ) : (
               <Image
@@ -2354,7 +2427,7 @@ const HomeScreen = () => {
             onClose={() => setModalVisible(false)}
           />
           <Modal visible={isCameraVisible} animationType="slide">
-            <RNCamera
+            {/* <RNCamera
               style={styles.camera}
               type={RNCamera.Constants.Type.back}
               flashMode={RNCamera.Constants.FlashMode.on}
@@ -2370,11 +2443,59 @@ const HomeScreen = () => {
                   Point your camera at a QR code
                 </Text>
               </View>
+              
+            </RNCamera> */}
+            <RNCamera
+              style={styles.camera}
+              type={RNCamera.Constants.Type.back}
+              flashMode={RNCamera.Constants.FlashMode.on}
+              onBarCodeRead={handleBarCodeScanned}
+              captureAudio={false}>
+              <TouchableOpacity
+                onPress={() => setCameraVisible(false)}
+                style={styles.backButton}>
+                <Icon name={'close'} size={FONTSIZE.size_30} color={'#fff'} />
+              </TouchableOpacity>
+
+              <View style={styles.overlay}>
+                <View style={styles.topOverlay}></View>
+                <View style={styles.middleOverlay}>
+                  <View style={styles.sideOverlay}></View>
+                  <View style={styles.scannerFrame}></View>
+                  <View style={styles.sideOverlay}></View>
+                </View>
+                <View style={styles.bottomOverlay}></View>
+              </View>
+
             </RNCamera>
           </Modal>
         </SafeAreaView>
       </ScrollView>
-
+      <View
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          position: 'absolute',
+          bottom: '2%',
+          left: '44%',
+          zIndex: 11,
+        }}>
+        <TouchableOpacity
+          onPress={handleScanMePress}
+          style={{
+            alignItems: 'center',
+            backgroundColor: '#FE372E',
+            borderRadius: 10,
+            padding: 5,
+            justifyContent: 'center',
+            direction:"row"
+          }}>
+          <Icon name="qr-code" size={45} color={'white'} />
+          {/* <Text style={{color: 'white', width: 120, textAlign: 'center'}}>
+            Scan to Use Pod
+          </Text> */}
+        </TouchableOpacity>
+      </View>
       {/* Sidebar */}
       <Animated.View
         style={[
@@ -2505,6 +2626,59 @@ const styles = StyleSheet.create({
     padding: 7,
     borderRadius: 10,
     top: '45%',
+  },
+  camera: {
+    flex: 1,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 2,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  topOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dark overlay on top
+    width: '100%',
+  },
+  middleOverlay: {
+    flexDirection: 'row',
+  },
+  sideOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dark overlay on sides
+  },
+  bottomOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dark overlay on bottom
+    width: '100%',
+  },
+  scannerFrame: {
+    width: 250, // Scanner frame width
+    height: 250, // Scanner frame height
+    borderWidth: 2,
+    borderColor: 'white', // White border for the scanner frame
+    borderRadius: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0)', // Transparent center
+  },
+  cameraOverlay: {
+    position: 'absolute',
+    bottom: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 

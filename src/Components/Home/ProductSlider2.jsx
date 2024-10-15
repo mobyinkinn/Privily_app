@@ -26,7 +26,7 @@
 //  };
 // const fetchData = async () => {
 //   try {
-//     const response = await fetch('https://privily.co/api/allpods');
+//     const response = await fetch('http://10.0.2.2:4000/api/allpods');
 //     const jsonData = await response.json();
 //     if (response.ok) {
 //       setCarouselItems(jsonData.data); // Adjust according to the structure of your response
@@ -61,7 +61,7 @@
 //           }}>
 //           <Image
 //             source={{
-//               uri: `https://privily.co/storage/podsimage/${item.featuredImage}`,
+//               uri: `http://10.0.2.2:4000/storage/podsimage/${item.featuredImage}`,
 //             }}
 //             style={{width: '100%', height: '100%', resizeMode: 'contain'}}
 //           />
@@ -126,51 +126,87 @@ import {useNavigation} from '@react-navigation/native';
 const Slider2 = ({data}) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const navigation = useNavigation();
+  console.log('data', data);
 
-  const renderItem = ({item}) => {
-    return (
-      <TouchableOpacity
-      onPress={() => {
-        navigation.navigate(`${item.url}`, {
-          origin: 'HomeMain',
-        });
-      }}
-      >
-        <View
-          style={{
-            height: 250,
-          }}>
-          <Image
-            source={{
-              uri: item.image,
-            }}
-            style={{width: '100%', height: '100%', resizeMode: 'contain'}}
-          />
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  // const renderItem = ({item}) => {
+  //   return (
+  //     <TouchableOpacity
+  //       style={{
+  //         display: 'flex',
+  //         alignItems: 'center',
+  //       }}
+  //       onPress={() => {
+  //         navigation.navigate(`${item.url}`, {
+  //           origin: 'HomeMain',
+  //         });
+  //       }}>
+  //       <View
+  //         style={{
+  //           width: '90%',
+  //           height: 250,
+  //         }}>
+  //         <Image
+  //           source={{
+  //             uri: item.image,
+  //           }}
+  //           style={{width: '100%', height: '100%', resizeMode: 'contain'}}
+  //         />
+  //       </View>
+  //     </TouchableOpacity>
+  //   );
+  // };
 
   return (
     <ScrollView>
       <SafeAreaView style={{flex: 1}}>
-        <View
-          style={{
-            flex: 1,
-            padding: 6,
-            flexDirection: 'row',
-            justifyContent: 'center',
-          }}>
-          <Carousel
+        {data.map(da => (
+          <View
+            style={{
+              flex: 1,
+            }}>
+            {/* <Carousel
             layout="default"
             data={data}
             sliderWidth={400}
             itemWidth={400}
             renderItem={renderItem}
             onSnapToItem={index => setActiveIndex(index)}
-          />
-        </View>
-        <Pagination
+          /> */}
+            {/* <Image
+              source={{
+                uri: da.image,
+              }}
+              style={{width: '100%', height: '100%', resizeMode: 'contain'}}
+            /> */}
+            <TouchableOpacity
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              onPress={() => {
+                navigation.navigate('Location', {
+                  screen: 'LocationMain', // Correct screen in the Location tab
+                  params: {
+                    origin: 'HomeMain', // Any additional params you need to pass
+                  },
+                });
+              }}>
+              <View
+                style={{
+                  width: '95%',
+                  height: 250,
+                }}>
+                <Image
+                  source={{
+                    uri: da.image,
+                  }}
+                  style={{width: '100%', height: '100%', resizeMode: 'contain'}}
+                />
+              </View>
+            </TouchableOpacity>
+          </View>
+        ))}
+        {/* <Pagination
           dotsLength={data.length}
           activeDotIndex={activeIndex}
           containerStyle={{paddingTop: -20}}
@@ -182,7 +218,7 @@ const Slider2 = ({data}) => {
           }}
           inactiveDotOpacity={0.4}
           inactiveDotScale={0.6}
-        />
+        /> */}
       </SafeAreaView>
     </ScrollView>
   );

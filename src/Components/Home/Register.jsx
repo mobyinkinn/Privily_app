@@ -1,6 +1,7 @@
+
 // import {useNavigation, useRoute} from '@react-navigation/native';
 // import axios from 'axios';
-// import React, {useState} from 'react';
+// import React, {useContext, useState} from 'react';
 // import {
 //   StyleSheet,
 //   View,
@@ -11,36 +12,20 @@
 // } from 'react-native';
 // import {SafeAreaView} from 'react-native-safe-area-context';
 // import Icon from 'react-native-vector-icons/MaterialIcons';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { AuthContext } from '../../context/Authcontext';
 
 // const Register = () => {
+//   const {handleSubmitRegister} = useContext(AuthContext);
+
 //   const navigation = useNavigation();
 //   const route = useRoute();
 //   const {phoneNumber} = route.params;
-
 //   const [firstname, setFirstname] = useState('');
 //   const [lastname, setLastname] = useState('');
 //   const [email, setEmail] = useState('');
+//   const [error, setError] = useState('');
 
-//   const handleSubmit = async () => {
-//     try {
-//       const response = await axios.post(
-//         'http://10.0.2.2:4000/api/user/register',
-//         {
-//           firstname,
-//           lastname,
-//           email,
-//           phoneNumber,
-//         },
-//       );
-
-//       if (response.data.token) {
-//         navigation.navigate('Main');
-//       }
-//       console.log('response', response);
-//     } catch (error) {
-//       console.error('Error registering user:', error);
-//     }
-//   };
 
 //   return (
 //     <SafeAreaView style={styles.safeArea}>
@@ -51,6 +36,7 @@
 //       </TouchableOpacity>
 //       <KeyboardAvoidingView behavior="padding" style={styles.container}>
 //         <Text style={styles.title}>Register</Text>
+//         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 //         <TextInput
 //           style={styles.input}
 //           placeholder="First Name"
@@ -76,7 +62,11 @@
 //           value={phoneNumber}
 //           editable={false}
 //         />
-//         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+//         <TouchableOpacity
+//           style={styles.submitButton}
+//           onPress={() =>
+//             handleSubmitRegister(navigation, firstname, lastname, email)
+//           }>
 //           <Text style={styles.submitButtonText}>Submit</Text>
 //         </TouchableOpacity>
 //       </KeyboardAvoidingView>
@@ -105,6 +95,10 @@
 //     marginBottom: 20,
 //     color: '#000',
 //   },
+//   errorText: {
+//     color: 'red',
+//     marginBottom: 20,
+//   },
 //   input: {
 //     width: '100%',
 //     height: 40,
@@ -129,8 +123,6 @@
 // });
 
 // export default Register;
-
-
 import {useNavigation, useRoute} from '@react-navigation/native';
 import axios from 'axios';
 import React, {useContext, useState} from 'react';
@@ -145,7 +137,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthContext } from '../../context/Authcontext';
+import {AuthContext} from '../../context/Authcontext';
 
 const Register = () => {
   const {handleSubmitRegister} = useContext(AuthContext);
@@ -153,37 +145,32 @@ const Register = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {phoneNumber} = route.params;
-
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
 
-  // const handleSubmit = async () => {
-  //   try {
-  //     const response = await axios.post(
-  //       'http://10.0.2.2:4000/api/user/register',
-  //       {
-  //         firstname,
-  //         lastname,
-  //         email,
-  //         phoneNumber,
-  //       },
-  //     );
+  // Function to validate inputs and handle submission
+  const handleRegister = () => {
+    // Reset the error message first
+    setError('');
 
-  //     if (response.data.token) {
-  //       await AsyncStorage.setItem('userToken', response.data.token);
-  //       navigation.navigate('Main');
-  //     } else {
-  //       setError(response.data.message || 'Registration failed');
-  //     }
-  //       console.log('userToken', userToken);
+    // Check if all fields are filled
+    if (!firstname || !lastname || !email) {
+      setError('Please fill in all the fields.');
+      return;
+    }
 
-  //   } catch (error) {
-  //     setError('Error registering user');
-  //     console.error('Error registering user:', error);
-  //   }
-  // };
+    // Simple email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    // If no errors, proceed with form submission
+    handleSubmitRegister(navigation, firstname, lastname, email);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -220,11 +207,7 @@ const Register = () => {
           value={phoneNumber}
           editable={false}
         />
-        <TouchableOpacity
-          style={styles.submitButton}
-          onPress={() =>
-            handleSubmitRegister(navigation, firstname, lastname, email)
-          }>
+        <TouchableOpacity style={styles.submitButton} onPress={handleRegister}>
           <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>

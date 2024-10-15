@@ -25,6 +25,7 @@ const PodDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [averageRating, setAverageRating] = useState(4.7); 
   const [expandedSection, setExpandedSection] = useState(
     'Booking Requirements',
   );
@@ -52,11 +53,24 @@ const PodDetailPage = () => {
   };
 
   const featuress = [
-    {name: 'Comfortable chairs', icon: 'chair'},
-    {name: 'Unlimited Wi-Fi', icon: 'wifi'},
-    {name: 'Sound Proof', icon: 'hearing'},
-    {name: 'Charging', icon: 'power'},
-    {name: '24/7 Access', icon: 'lock'},
+    {name: 'Adjustable bar-style seating', icon: 'chair'},
+    {name: 'Wi-Fi from event venue', icon: 'wifi'},
+    {name: 'Sound-proof', icon: 'hearing'},
+    {name: '3 Pin, 2 Pin and USB electrical sockets', icon: 'power'},
+    {name: 'Ventilation', icon: 'hvac'},
+    {name: 'Lighting', icon: 'light'},
+    {name: 'Single person seating and desk', icon: 'person'},
+    {
+      name: 'Two person comfortable seating and table',
+      icon: 'people',
+    },
+    {name: 'Four person seating and table', icon: 'groups'},
+    {name: 'Studio quality Audio and Video recording equipment', icon: 'mic'},
+    {name: 'Inward facing Digital LCD screen', icon: 'tv'},
+    {
+      name: 'Outward facing LCD screen for digital adverts',
+      icon: 'cast',
+    },
   ];
 
   const fetchFeatures = async () => {
@@ -79,6 +93,17 @@ const PodDetailPage = () => {
           `http://10.0.2.2:4000/api/product/${slug}`,
         );
         setPodData(response.data);
+        const ratings = response.data.ratings || [];
+        if (ratings.length > 0) {
+          const totalStars = ratings.reduce(
+            (sum, rating) => sum + rating.star,
+            0,
+          );
+          const average = totalStars / ratings.length;
+          setAverageRating(average.toFixed(1)); // Set calculated average rating
+        } else {
+          setAverageRating(4.7); // Default rating if no ratings are present
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -127,7 +152,8 @@ const req = [
   const locationText = location
     ? `${location.name}, ${location.Street}, ${location.city}, ${location.state}, ${location.country_code}, ${location.zip}`
     : '';
-  console.log('images', images);
+    
+  console.log('podDatafeatures', podData?.features);
 
   // Calculate the number of static features to show based on the dynamic features length
   const staticFeaturesToShow = featuress.slice(0, features.length);
@@ -197,13 +223,14 @@ const req = [
                 flexDirection: 'row',
                 alignItems: 'center',
               }}>
-              <Text style={styles.rating}>{podData.totalRating}</Text>
+              <Text style={styles.rating}>{averageRating}</Text>
               <Icon name={'star'} size={20} color={'#fff'} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.bookButton}
               onPress={() => {
                 navigation.navigate('BookingScreen', {
+                  title:podData.title,
                   slugs: podData._id,
                   origin: 'PodDetailPage',
                 });
@@ -216,15 +243,15 @@ const req = [
             <Text style={styles.sectionTitle}>Features</Text>
             <View style={{display: 'flex', flexDirection: 'row'}}>
               <View style={{display: 'flex'}}>
-                {staticFeaturesToShow.map((feature, index) => (
-                  <View key={index} style={{margin: 5.5}}>
-                    <Icon name={feature.icon} size={26} color="grey" />
-                  </View>
-                ))}
-              </View>
-              <View style={{display: 'flex'}}>
-                {features.map((feature, index) => (
+                {podData?.features.map((feature, index) => (
                   <View key={index} style={styles.featureRow}>
+                    {featuress
+                      .filter(el => feature.name === el.name)
+                      .map((feature, index) => (
+                        <View key={index} style={{margin: 5.5}}>
+                          <Icon name={feature.icon} size={26} color="grey" />
+                        </View>
+                      ))}
                     <Text style={styles.featureText}>{feature.name}</Text>
                   </View>
                 ))}
@@ -285,7 +312,7 @@ const styles = StyleSheet.create({
   },
   featureRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'start',
     marginBottom: 5,
     paddingTop: 5,
   },
@@ -294,6 +321,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     letterSpacing: 2,
     color: '#000',
+    paddingTop:4,
+    width:"88%",
   },
   imageContainer: {
     width: '100%',

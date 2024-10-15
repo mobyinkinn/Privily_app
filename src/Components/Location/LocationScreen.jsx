@@ -26,7 +26,7 @@
 // const handleLocationClick = async (location) => {
 //   try {
 //     const response = await axios.post(
-//       'https://privily.co/api/livesearch',
+//       'http://10.0.2.2:4000/api/livesearch',
 //       {
 //         location: location,
 //       },
@@ -216,7 +216,7 @@ const LocationScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Find Pods Closer to You?</Text>
+      <Text style={styles.title}>Where will you work today ?</Text>
       <FlatList
         data={locations}
         keyExtractor={item => item.id}

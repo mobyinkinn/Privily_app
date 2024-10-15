@@ -86,7 +86,7 @@ const DiscoverScreen = () => {
                 style={{
                   display: 'flex',
                   flexDirection: 'row',
-                  gap:10,
+                  gap:15,
                   paddingVertical: 7,
                 }}>
                 <View
@@ -106,7 +106,7 @@ const DiscoverScreen = () => {
                     {pod.totalRating}
                   </Text>
                 </View>
-                <View style={{display: 'flex', flexDirection: 'row'}}>
+                <View style={{display: 'flex', flexDirection: 'row',gap:15}}>
                   {features.map((feature, index) => (
                     <View key={index} style={{margin: 5}}>
                       <Icon name={feature.icon} size={25} color="grey" />
@@ -200,11 +200,10 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   address: {
-    fontSize: 20,
+    fontSize: 18,
     color: '#666',
     marginBottom: 10,
     marginTop: 10,
-    paddingHorizontal:9
   },
   features: {
     display:"flex",
@@ -228,7 +227,7 @@ const styles = StyleSheet.create({
   button: {
     display: 'flex',
     flexDirection: 'row',
-    gap:50,
+    gap:70,
     paddingVertical:10
   },
 

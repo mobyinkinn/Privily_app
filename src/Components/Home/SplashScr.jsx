@@ -387,12 +387,9 @@ import { AuthContext } from '../../context/Authcontext';
 
 const countryCodes = [
   {label: 'India (+91)', value: '+91'},
-  {label: 'USA (+1)', value: '+1'},
-  {label: 'UK (+44)', value: '+44'},
   {label: 'South Africa (+27)', value: '+27'},
   // Add more country codes as needed
 ];
-
 const SplashScr = () => {
  const {setPhoneNumber, phoneNumber: contextPhoneNumber} =
    useContext(AuthContext);
@@ -405,11 +402,15 @@ const SplashScr = () => {
     try {
       const fullPhoneNumber = countryCode + phoneNumber;
       setPhoneNumber(fullPhoneNumber);
-      console.log('fullPhoneNumber', fullPhoneNumber);
       const response = await axios.post(
         'http://10.0.2.2:4000/api/user/app-login',
         {
           phoneNumber: fullPhoneNumber,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
       );
 
@@ -422,14 +423,21 @@ const SplashScr = () => {
       console.error('Error fetching data:', error);
     }
   };
-
   const validateInput = () => {
-    const phoneRegex = /^\d{10}$/; // Adjust regex according to your country's mobile number format if needed
+   const phoneRegex = /^\d{9}$|^\d{10}$/;
 
-    if (!phoneNumber) {
+   let newPhone = "";
+
+   if(phoneNumber.startsWith("0")){
+     newPhone = phoneNumber.slice(1);
+   }else{
+     newPhone = phoneNumber;
+   }
+console.log("newphone", newPhone)
+    if (!newPhone) {
       setError('Please fill in your phone number');
       return false;
-    } else if (phoneRegex.test(phoneNumber)) {
+    } else if (phoneRegex.test(newPhone)) {
       setError('');
       return true;
     } else {

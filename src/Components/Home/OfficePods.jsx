@@ -145,7 +145,7 @@ const OfficePodsModal = ({visible, onClose}) => {
     const payload = {
       companyName,
       email: workEmail,
-      mobile: mobileNumber,
+      phoneNumber: mobileNumber,
     };
 
     try {

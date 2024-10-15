@@ -222,7 +222,15 @@ import {AuthContext} from '../../context/Authcontext';
 const BookingCard = ({booking}) => {
   const navigation = useNavigation();
   const displayTitle = booking.shortDescription || booking.bookingPurpose;
-
+  const formatTime = dateTime => {
+    const date = new Date(dateTime);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC',
+    });
+  };
   return (
     <TouchableOpacity
       style={styles.card}
@@ -236,7 +244,7 @@ const BookingCard = ({booking}) => {
         </View>
         <Text style={styles.cardDate}>
           {new Date(booking.bookingDate).toLocaleDateString()} |{' '}
-          {new Date(booking.startTime).toLocaleTimeString()}
+          {formatTime(booking.startTime)}
         </Text>
       </View>
       <Icon name="chevron-right" size={24} color="#000" />
@@ -244,25 +252,18 @@ const BookingCard = ({booking}) => {
   );
 };
 
-
 const AllBookings = () => {
   const [activeTab, setActiveTab] = useState('All');
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const {userToken} = useContext(AuthContext);
+  const {fetchBookings, userToken} = useContext(AuthContext); // Get fetchBookings from AuthContext
 
   useEffect(() => {
-    const fetchBookings = async () => {
+    console.log("use effect runnings")
+    const loadBookings = async () => {
       try {
-        const response = await axios.get(
-          'http://10.0.2.2:4000/api/user/all-bookingsByUser',
-          {
-            headers: {
-              Authorization: `Bearer ${userToken}`,
-            },
-          },
-        );
-        setBookings(response.data);
+        const bookingsData = await fetchBookings();
+        setBookings(bookingsData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching bookings:', error);
@@ -270,7 +271,7 @@ const AllBookings = () => {
       }
     };
 
-    fetchBookings();
+    loadBookings();
   }, [userToken]);
 
   const filteredBookings = bookings.filter(booking => {
@@ -337,6 +338,8 @@ const AllBookings = () => {
     </View>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {

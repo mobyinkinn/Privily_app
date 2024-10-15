@@ -62,7 +62,10 @@ const NotificationScreen = () => {
        },
      );
      console.log('response', response);
-     if (response.data.message === 'Rating submitted successfully') {
+     if (
+       response.data.message ===
+       'Rating submitted successfully for both booking and product'
+     ) {
        Alert.alert('Feedback submitted successfully');
        setModalVisible(false);
        setRating(0);

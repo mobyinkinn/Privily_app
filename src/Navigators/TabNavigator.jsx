@@ -226,7 +226,7 @@ const TabNavigator = () => {
         screenOptions={({route}) => ({
           headerShown: false,
           tabBarHideOnKeyboard: true,
-          tabBarStyle: {height: SPACING.space_10 * 5.2},
+          tabBarStyle: {height: SPACING.space_10 * 5.1},
           tabBarIcon: ({focused, color, size}) => {
             let iconName;
             let badgeCount = 0;
@@ -281,21 +281,29 @@ const TabNavigator = () => {
             unmountOnBlur: true,
           }}
         />
-        <Tab.Screen
-          name="Scan"
+        {/* <Tab.Screen
+          name="Scan to Book"
           component={() => null} // Empty component to prevent navigation
           options={{
+            tabBarLabel: 'Scan to Book', // This is not used when you customize tabBarButton
             tabBarButton: props => (
-              <TouchableOpacity {...props} onPress={handleScanMePress} style={{paddingBottom:10}}>
-                <Icon name="qr-code" size={50} color={"#FE372E"} />
-               
+              <TouchableOpacity
+                {...props}
+                onPress={handleScanMePress}
+                style={{alignItems: 'center'}}>
+                <Icon name="qr-code" size={35} color={'#FE372E'} />
+                <Text
+                  style={{color: '#808080', fontWeight: 'bold', fontSize: 11}}>
+                  Scan to Book
+                </Text>
               </TouchableOpacity>
             ),
           }}
-        />
+        /> */}
+
         <Tab.Screen
           name="Notification"
-          component={NotificationStackScreen}
+        component={NotificationStackScreen}
           options={{
             unmountOnBlur: true,
           }}

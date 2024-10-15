@@ -270,8 +270,8 @@ const DiscoverLocation = () => {
           .map(item => ({
             ...item,
             featuredImage: item.images.length > 0 ? item.images[0].url : null,
-          }));
-
+          }))
+          .reverse();
         setPods(data);
       } catch (error) {
         console.error('Error fetching banner data:', error);
@@ -343,7 +343,17 @@ const DiscoverLocation = () => {
                     }}>
                     Learn More
                   </Text>
-                  <Text style={styles.buttonText}>Book Now</Text>
+                  {/* <Text style={styles.buttonText}>Book Now</Text> */}
+                  <TouchableOpacity
+                    style={styles.bookButton}
+                    onPress={() => {
+                      navigation.navigate('BookingScreen', {
+                        slugs: pod._id,
+                        origin: 'PodDetailPage',
+                      });
+                    }}>
+                    <Text style={styles.buttonText}>Book Now</Text>
+                  </TouchableOpacity>
                 </TouchableOpacity>
               </View>
             </View>
@@ -355,8 +365,8 @@ const DiscoverLocation = () => {
             <Text style={styles.subMessage}>
               Start bookings and purchase their listings!
             </Text>
-            <TouchableOpacity onPress={() => Alert.alert('Start Booking')}>
-            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => Alert.alert('Start Booking')}></TouchableOpacity>
           </View>
         )}
       </ScrollView>
