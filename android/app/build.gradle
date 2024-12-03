@@ -74,13 +74,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.awesomeproject"
+    namespace 'com.privily'
     
     defaultConfig {
-        applicationId "com.awesomeproject"
+        applicationId "com.privily"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode 26
         versionName "1.0"
     }
     signingConfigs {

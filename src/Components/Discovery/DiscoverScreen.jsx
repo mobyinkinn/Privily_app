@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -15,6 +16,7 @@ import {useNavigation} from '@react-navigation/native';
 
 const DiscoverScreen = () => {
   const [pods, setPods] = useState([]);
+  const [loading, setloading] = useState(true);
   const navigation = useNavigation();
 
  const features = [
@@ -27,7 +29,7 @@ const DiscoverScreen = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://10.0.2.2:4000/api/product');
+        const response = await axios.get('https://privily.co/api/product');
 
         const data = response.data
         .filter(item => !item.isBlocked) // Filter out blocked items
@@ -37,10 +39,11 @@ const DiscoverScreen = () => {
         }));
 
       setPods(data);
+      setloading(false)
     } catch (error) {
       console.error('Error fetching banner data:', error);
       setError('Error fetching data');
-
+setloading(false)
       }
     };
 
@@ -52,7 +55,7 @@ const DiscoverScreen = () => {
      <View style={styles.imageContainer}>
        <Image
          source={{
-           uri: `http://10.0.2.2:4000${item.url}`,
+           uri: `https://privily.co${item.url}`,
          }}
          style={styles.image}
          onError={e => console.log('Error loading image:', e.nativeEvent.error)}
@@ -60,6 +63,13 @@ const DiscoverScreen = () => {
      </View>
    );
  };
+ if (loading) {
+   return (
+     <View style={styles.loadingContainer}>
+       <ActivityIndicator size="large" color="#000" />
+     </View>
+   );
+ }
   return (
     <>
       <View style={styles.container2}>
@@ -160,6 +170,11 @@ const styles = StyleSheet.create({
     fontSize: 25,
     color: '#000',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container2: {
     backgroundColor: '#f1f7fd',
     paddingTop: paddingTopValue,
@@ -170,8 +185,8 @@ const styles = StyleSheet.create({
   },
   podContainer: {
     backgroundColor: '#fff',
-    display:"flex",
-    alignItems:"center"
+    display: 'flex',
+    alignItems: 'center',
   },
   podContainer2: {
     backgroundColor: '#fff',
@@ -206,13 +221,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   features: {
-    display:"flex",
-    flexDirection:"row",
+    display: 'flex',
+    flexDirection: 'row',
     marginBottom: 10,
     color: '#000',
   },
   featureRow: {
-    display:"flex",
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 5,
@@ -227,8 +242,8 @@ const styles = StyleSheet.create({
   button: {
     display: 'flex',
     flexDirection: 'row',
-    gap:70,
-    paddingVertical:10
+    gap: 70,
+    paddingVertical: 10,
   },
 
   buttonText2: {

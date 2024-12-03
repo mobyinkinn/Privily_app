@@ -150,7 +150,7 @@ const OfficePodsModal = ({visible, onClose}) => {
 
     try {
       const response = await axios.post(
-        'http://10.0.2.2:4000/api/user/corporate-pods',
+        'https://privily.co/api/user/corporate-pods',
         payload,
       );
       console.log('Response:', response.data);
@@ -181,11 +181,13 @@ const OfficePodsModal = ({visible, onClose}) => {
             style={styles.input}
             placeholder="Company Name"
             value={companyName}
+            placeholderTextColor={'black'}
             onChangeText={setCompanyName}
           />
           <TextInput
             style={styles.input}
             placeholder="Work Email"
+            placeholderTextColor={'black'}
             value={workEmail}
             onChangeText={setWorkEmail}
             keyboardType="email-address"
@@ -194,6 +196,7 @@ const OfficePodsModal = ({visible, onClose}) => {
             style={styles.input}
             placeholder="Mobile Number"
             value={mobileNumber}
+            placeholderTextColor={'black'}
             onChangeText={setMobileNumber}
             keyboardType="phone-pad"
           />
@@ -227,10 +230,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
+    color:"red"
   },
   modalSubtitle: {
     fontSize: 16,
-    color: 'gray',
+    color: 'black',
     marginBottom: 20,
   },
   input: {
@@ -256,8 +260,8 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 12,
+    right: 15,
   },
   closeButtonText: {
     fontSize: 18,

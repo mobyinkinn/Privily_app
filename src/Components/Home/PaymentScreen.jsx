@@ -10,7 +10,7 @@
 
 //   const createCheckout = async () => {
 //     try {
-//       const response = await axios.post('http://10.0.2.2:4000/api/payments', {
+//       const response = await axios.post('https://privily.co/api/payments', {
 //         amount: parseInt(amount, 10) * 100, // Convert to cents
 //         currency: 'ZAR',
 //         cancelUrl: 'https://example.com/cancel',
@@ -123,7 +123,7 @@ const PaymentScreen = () => {
 
   const createCheckout = async () => {
     try {
-      const response = await axios.post('http://10.0.2.2:4000/api/payments', {
+      const response = await axios.post('https://privily.co/api/payments', {
         amount: amount * 100, // Convert to cents
         currency: 'ZAR',
         cancelUrl: 'https://example.com/cancel',

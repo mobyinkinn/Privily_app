@@ -26,7 +26,7 @@
 //  };
 // const fetchData = async () => {
 //   try {
-//     const response = await fetch('http://10.0.2.2:4000/api/allpods');
+//     const response = await fetch('https://privily.co/api/allpods');
 //     const jsonData = await response.json();
 //     if (response.ok) {
 //       setCarouselItems(jsonData.data); // Adjust according to the structure of your response
@@ -61,7 +61,7 @@
 //           }}>
 //           <Image
 //             source={{
-//               uri: `http://10.0.2.2:4000/storage/podsimage/${item.featuredImage}`,
+//               uri: `https://privily.co/storage/podsimage/${item.featuredImage}`,
 //             }}
 //             style={{width: '100%', height: '100%', resizeMode: 'contain'}}
 //           />
@@ -159,7 +159,7 @@ const Slider2 = ({data}) => {
   return (
     <ScrollView>
       <SafeAreaView style={{flex: 1}}>
-        {data.map(da => (
+        {data?.map(da => (
           <View
             style={{
               flex: 1,

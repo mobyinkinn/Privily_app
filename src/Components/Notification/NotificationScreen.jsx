@@ -53,7 +53,7 @@ const NotificationScreen = () => {
  const handleRatingSubmit = async () => {
    try {
      const response = await axios.put(
-       `http://10.0.2.2:4000/api/user/rate/${selectedNotification.booking_id}/${selectedNotification.podId}`,
+       `https://privily.co/api/user/rate/${selectedNotification.booking_id}/${selectedNotification.podId}`,
        {message: feedback, rating},
        {
          headers: {

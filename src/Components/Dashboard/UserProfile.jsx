@@ -150,7 +150,7 @@ console.log('userToken', userToken);
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const response = await axios.get('http://10.0.2.2:4000/api/user/me', {
+        const response = await axios.get('https://privily.co/api/user/me', {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },

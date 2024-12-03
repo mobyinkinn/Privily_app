@@ -386,15 +386,15 @@ import RNPickerSelect from 'react-native-picker-select';
 import { AuthContext } from '../../context/Authcontext';
 
 const countryCodes = [
-  {label: 'India (+91)', value: '+91'},
   {label: 'South Africa (+27)', value: '+27'},
+  {label: 'India (+91)', value: '+91'},
   // Add more country codes as needed
 ];
 const SplashScr = () => {
  const {setPhoneNumber, phoneNumber: contextPhoneNumber} =
    useContext(AuthContext);
   const navigation = useNavigation();
-  const [countryCode, setCountryCode] = useState('+91'); // Default country code
+  const [countryCode, setCountryCode] = useState('+27'); // Default country code
   const [phoneNumber, setPhoneNumberLocal] = useState('');
   const [error, setError] = useState('');
 
@@ -403,7 +403,7 @@ const SplashScr = () => {
       const fullPhoneNumber = countryCode + phoneNumber;
       setPhoneNumber(fullPhoneNumber);
       const response = await axios.post(
-        'http://10.0.2.2:4000/api/user/app-login',
+        'https://privily.co/api/user/app-login',
         {
           phoneNumber: fullPhoneNumber,
         },

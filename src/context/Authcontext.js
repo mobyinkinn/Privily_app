@@ -16,20 +16,23 @@ export const AuthProvider = ({children}) => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [bookingEndTime, setBookingEndTime] = useState(null);
 
-
   const [showPopup, setShowPopup] = useState(false); // State to manage popup visibility
   const [availability, setAvailability] = useState([]); // State to store availability slots
   const [slugs, setSlugs] = useState(null); // State to store the pod ID
   const [bookingDate, setBookingDate] = useState(null); // State to store the booking date
- const [bookingId, setbookingId] = useState(null)
+  const [bookingId, setbookingId] = useState(null);
   const [notifications, setNotifications] = useState([]);
-   const [unreadCount, setUnreadCount] = useState(0);
-   const [error, setError] = useState("")
-   const [bookings, setBookings] = useState([]); 
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [error, setError] = useState('');
+  const [bookings, setBookings] = useState([]);
+  const [checkoutID, setCheckoutID] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [paymentResponse, setPaymentResponse] = useState(null); // To store payment response
+const [bookingres, setbookingres] = useState(null)
   const handleSubmit = async navigation => {
     try {
       const response = await axios.post(
-        'http://10.0.2.2:4000/api/user/verify-otp',
+        'https://privily.co/api/user/verify-otp',
         {
           phoneNumber: phoneNumber,
           otp: code.join(''),
@@ -50,7 +53,38 @@ export const AuthProvider = ({children}) => {
       console.error('Error fetching data:', error);
     }
   };
+  const handleBookNow = async (amount, setCheckoutUrl, setShowPaymentModal) => {
+    if (loading) return;
 
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        'https://privily.co/api/user/create-payment',
+        {
+          amount: amount * 100,
+          currency: 'ZAR',
+          cancelUrl: 'myapp://Cancel',
+          successUrl: 'https://example.com/success',
+          failureUrl: 'myapp://Failure',
+        },
+      );
+
+      if (response.data && response.data.redirectUrl) {
+        setCheckoutUrl(response.data.redirectUrl);
+        setShowPaymentModal(true);
+        setCheckoutID(response.data.id);
+        setPaymentResponse(response.data)
+      } else {
+        Alert.alert('Error', 'Failed to create checkout');
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      Alert.alert('Error', 'An error occurred while creating the checkout');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmitRegister = async (
     navigation,
@@ -60,7 +94,7 @@ export const AuthProvider = ({children}) => {
   ) => {
     try {
       const response = await axios.post(
-        'http://10.0.2.2:4000/api/user/register',
+        'https://privily.co/api/user/register',
         {
           firstname,
           lastname,
@@ -88,7 +122,7 @@ export const AuthProvider = ({children}) => {
     console.log('bookingDetails22', bookingDetails);
     try {
       const response = await axios.post(
-        `http://10.0.2.2:4000/api/user/create-booking/${slugs}`,
+        `https://privily.co/api/user/create-booking/${slugs}`,
         bookingDetails,
         {
           headers: {
@@ -101,7 +135,8 @@ export const AuthProvider = ({children}) => {
         console.log('Booking end time:', response.data.booking.endTime); // Debugging
         setBookingEndTime(new Date(response.data.booking.endTime)); // Ensure this is a Date object
         setSlugs(slugs); // Store slugs
-        setbookingId(response.data.booking._id)
+        setbookingId(response.data.booking._id);
+        setbookingres(response.data.booking)
         console.log('booking', response);
         setBookingDate(new Date().toISOString().split('T')[0]); // Store the booking date
       }
@@ -115,7 +150,7 @@ export const AuthProvider = ({children}) => {
   const fetchProductAvailability = async (slugs, bookingDate) => {
     try {
       const response = await axios.get(
-        `http://10.0.2.2:4000/api/product/availability/${slugs}?booking_date=${bookingDate}`,
+        `https://privily.co/api/product/availability/${slugs}?booking_date=${bookingDate}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -138,9 +173,9 @@ export const AuthProvider = ({children}) => {
     for (let slot of nextSlots) {
       if (slot === false) {
         continuousFalseSlots.push(slot);
-      if (continuousFalseSlots.length === 8) {
-        break; // Limit to a maximum of 8 slots
-      }
+        if (continuousFalseSlots.length === 8) {
+          break; // Limit to a maximum of 8 slots
+        }
       } else {
         break;
       }
@@ -149,69 +184,69 @@ export const AuthProvider = ({children}) => {
     console.log('continuousFalseSlots', continuousFalseSlots);
     return continuousFalseSlots; // Return all consecutive false slots
   };
- const extendBooking = async (bookingId, extensionMinutes) => {
-   try {
-     const response = await axios.post(
-       `http://10.0.2.2:4000/api/user/extend/${bookingId}`,
-       {extensionMinutes},
-       {
-         headers: {
-           'Content-Type': 'application/json',
-           Authorization: `Bearer ${userToken}`,
-         },
-       },
-     );
-     return response.data;
-   } catch (error) {
-     console.error('Error extending booking:', error);
-     throw error;
-   }
- };
-//  const fetchNotifications = async () => {
-//    try {
-//      const response = await axios.get(
-//        'http://10.0.2.2:4000/api/user/notifications/active',
-//        {
-//          headers: {
-//            Authorization: `Bearer ${userToken}`,
-//          },
-//        },
-//      );
-//      if (Array.isArray(response.data.data)) {
-//        setNotifications(response.data.data);
-//        console.log('response', response.data.data);
-//      } else {
-//        setNotifications([]);
-//      }
-//      setIsLoading(false)
-//    } catch (error) {
-//      console.error('Error fetching notifications:', error);
-//      setIsLoading(false);
-//    }
-//  };
- const fetchNotifications = async () => {
-   try {
-     const response = await axios.get(
-       'http://10.0.2.2:4000/api/user/notifications/active',
-       {
-         headers: {
-           Authorization: `Bearer ${userToken}`,
-         },
-       },
-     );
-     if (Array.isArray(response.data.data)) {
-       setNotifications(response.data.data);
-       setUnreadCount(response.data.data.length); // Update unread count
-     } else {
-       setNotifications([]);
-       setUnreadCount(0); // No notifications
-     }
-     setIsLoading(false);
-   } catch (error) {
-     console.error('Error fetching notifications:', error);
-     setIsLoading(false);
-   }
- };
+  const extendBooking = async (bookingId, extensionMinutes) => {
+    try {
+      const response = await axios.post(
+        `https://privily.co/api/user/extend/${bookingId}`,
+        {extensionMinutes},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${userToken}`,
+          },
+        },
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error extending booking:', error);
+      throw error;
+    }
+  };
+  //  const fetchNotifications = async () => {
+  //    try {
+  //      const response = await axios.get(
+  //        'https://privily.co/api/user/notifications/active',
+  //        {
+  //          headers: {
+  //            Authorization: `Bearer ${userToken}`,
+  //          },
+  //        },
+  //      );
+  //      if (Array.isArray(response.data.data)) {
+  //        setNotifications(response.data.data);
+  //        console.log('response', response.data.data);
+  //      } else {
+  //        setNotifications([]);
+  //      }
+  //      setIsLoading(false)
+  //    } catch (error) {
+  //      console.error('Error fetching notifications:', error);
+  //      setIsLoading(false);
+  //    }
+  //  };
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get(
+        'https://privily.co/api/user/notifications/active',
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        },
+      );
+      if (Array.isArray(response.data.data)) {
+        setNotifications(response.data.data);
+        setUnreadCount(response.data.data.length); // Update unread count
+      } else {
+        setNotifications([]);
+        setUnreadCount(0); // No notifications
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      setIsLoading(false);
+    }
+  };
 
   const logout = () => {
     setIsLoading(true);
@@ -222,7 +257,7 @@ export const AuthProvider = ({children}) => {
   const fetchBookings = async () => {
     try {
       const response = await axios.get(
-        'http://10.0.2.2:4000/api/user/all-bookingsByUser',
+        'https://privily.co/api/user/all-bookingsByUser',
         {
           headers: {
             Authorization: `Bearer ${userToken}`,
@@ -255,100 +290,98 @@ export const AuthProvider = ({children}) => {
   useEffect(() => {
     isLoggedIn();
   }, []);
-useEffect(() => {
-  let timer;
-  if (bookingEndTime) {
-    const now = new Date().getTime();
-    const endTime = bookingEndTime.getTime();
-    const diff = endTime - now - 70000; // 1 minute before booking end time
+  useEffect(() => {
+    let timer;
+    if (bookingEndTime) {
+      const now = new Date().getTime();
+      const endTime = bookingEndTime.getTime();
+      const diff = endTime - now - 70000; // 1 minute before booking end time
 
-    console.log('now', now);
-    console.log('endTime', endTime);
-    console.log('diff', diff);
+      console.log('now', now);
+      console.log('endTime', endTime);
+      console.log('diff', diff);
 
-    if (diff > 0) {
-      console.log('Setting timer for', diff, 'milliseconds');
-      // For debugging, use a shorter timer duration (e.g., 5000 ms)
-      timer = setTimeout(() => {
-        console.log('Showing popup');
+      if (diff > 0) {
+        console.log('Setting timer for', diff, 'milliseconds');
+        // For debugging, use a shorter timer duration (e.g., 5000 ms)
+        timer = setTimeout(() => {
+          console.log('Showing popup');
+          setShowPopup(true);
+          // Fetch product availability here
+          if (slugs && bookingDate) {
+            fetchProductAvailability(slugs, bookingDate);
+          }
+        }, diff); // Change this back to `diff` for actual functionality
+      } else {
+        console.log('Showing popup immediately');
         setShowPopup(true);
         // Fetch product availability here
         if (slugs && bookingDate) {
           fetchProductAvailability(slugs, bookingDate);
         }
-      }, diff); // Change this back to `diff` for actual functionality
-    } else {
-      console.log('Showing popup immediately');
-      setShowPopup(true);
-      // Fetch product availability here
-      if (slugs && bookingDate) {
-        fetchProductAvailability(slugs, bookingDate);
       }
+    } else {
+      console.log('Booking end time not set');
     }
-  } else {
-    console.log('Booking end time not set');
-  }
 
-  return () => {
-    if (timer) {
-      console.log('Clearing timer');
-      clearTimeout(timer);
+    return () => {
+      if (timer) {
+        console.log('Clearing timer');
+        clearTimeout(timer);
+      }
+    };
+  }, [bookingEndTime, slugs, bookingDate]);
+  const checkCancelTime = bookingStartTime => {
+    const currentTime = new Date(); // Get current time
+    const startTime = new Date(bookingStartTime); // Booking start time
+    const updatedTime = new Date(
+      currentTime.setHours(currentTime.getHours() + 2),
+    ); // Adjust for time difference
+
+    const fiveMinutesBeforeStart = new Date(
+      startTime.getTime() - 5 * 60 * 1000, // 5 minutes before the start time
+    );
+
+    // Check if the current time is before five minutes before start time
+    return updatedTime <= fiveMinutesBeforeStart;
+  };
+
+  // Function to cancel the booking
+  const cancelBooking = async (bookingId, navigation) => {
+    try {
+      Alert.alert(
+        'Cancel Booking',
+        'Are you sure you want to cancel this booking?',
+        [
+          {
+            text: 'No',
+            style: 'cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: async () => {
+              // Call API to cancel the booking
+              const response = await axios.put(
+                `https://privily.co/api/user/cancel-booking/${bookingId}`,
+              );
+
+              console.log('Cancel booking response:', response.data);
+              // navigation.goBack();
+              navigation.goBack();
+            },
+          },
+        ],
+      );
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      Alert.alert('Error', 'Failed to cancel the booking. Please try again.');
     }
   };
-}, [bookingEndTime, slugs, bookingDate]);
-const checkCancelTime = bookingStartTime => {
-  const currentTime = new Date(); // Get current time
-  const startTime = new Date(bookingStartTime); // Booking start time
-  const updatedTime = new Date(
-    currentTime.setHours(currentTime.getHours() + 2),
-  ); // Adjust for time difference
-
-  const fiveMinutesBeforeStart = new Date(
-    startTime.getTime() - 5 * 60 * 1000, // 5 minutes before the start time
-  );
-
-  // Check if the current time is before five minutes before start time
-  return updatedTime <= fiveMinutesBeforeStart;
-};
-
-// Function to cancel the booking
-const cancelBooking = async (bookingId, navigation) => {
-  try {
-    Alert.alert(
-      'Cancel Booking',
-      'Are you sure you want to cancel this booking?',
-      [
-        {
-          text: 'No',
-          style: 'cancel',
-        },
-        {
-          text: 'Yes',
-          onPress: async () => {
-            // Call API to cancel the booking
-            const response = await axios.put(
-              `http://10.0.2.2:4000/api/user/cancel-booking/${bookingId}`,
-            );
-
-            console.log('Cancel booking response:', response.data);
-            // navigation.goBack();
-             navigation.navigate('AllBookings', {
-               origin: 'AllBookingsDetails',
-             });
-            const res= await fetchBookings();
-            console.log("res",res)
-          },
-        },
-      ],
-    );
-  } catch (error) {
-    console.error('Error cancelling booking:', error);
-    Alert.alert('Error', 'Failed to cancel the booking. Please try again.');
-  }
-};
   return (
     <AuthContext.Provider
       value={{
+        handleBookNow,
+        checkoutID,
         handleSubmit,
         fetchBookings,
         handleSubmitRegister,
@@ -373,6 +406,10 @@ const cancelBooking = async (bookingId, navigation) => {
         unreadCount,
         checkCancelTime,
         cancelBooking,
+        paymentResponse,
+        bookingres,
+        bookingId,
+        loading,
         bookings, // Provide bookings in context
       }}>
       {children}

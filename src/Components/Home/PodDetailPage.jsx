@@ -76,7 +76,7 @@ const PodDetailPage = () => {
   const fetchFeatures = async () => {
     try {
       const response = await axios.get(
-        'http://10.0.2.2:4000/api/location/features',
+        'https://privily.co/api/location/features',
       );
       setFeatures(response.data);
       console.log('Features:', response.data);
@@ -90,7 +90,7 @@ const PodDetailPage = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          `http://10.0.2.2:4000/api/product/${slug}`,
+          `https://privily.co/api/product/${slug}`,
         );
         setPodData(response.data);
         const ratings = response.data.ratings || [];
@@ -134,7 +134,7 @@ const req = [
       <View style={styles.imageContainer}>
         <Image
           source={{
-            uri: `http://10.0.2.2:4000${item.url}`,
+            uri: `https://privily.co${item.url}`,
           }}
           style={styles.image}
           onError={e =>

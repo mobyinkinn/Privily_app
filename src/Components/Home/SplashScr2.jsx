@@ -38,7 +38,7 @@
 // // const handleSubmit = async () => {
 // //   try {
 // //     const response = await axios.post(
-// //       'http://10.0.2.2:4000/api/user/verify-otp',
+// //       'https://privily.co/api/user/verify-otp',
 // //       {
 // //         phoneNumber: phoneNumber,
 // //         otp: code.join(''),

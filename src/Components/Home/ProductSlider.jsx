@@ -96,7 +96,7 @@
 
 //   const fetchData = async () => {
 //     try {
-//       const response = await axios.get('http://10.0.2.2:4000/api/allpods');
+//       const response = await axios.get('https://privily.co/api/allpods');
 //       setCarouselItems(response.data.data);
 //       console.log('carouselItems', carouselItems);
 //     } catch (error) {
@@ -120,7 +120,7 @@
 //         }}>
 //         <Image
 //           source={{
-//             uri: `http://10.0.2.2:4000/storage/podsimage/${item.featuredImage}`,
+//             uri: `https://privily.co/storage/podsimage/${item.featuredImage}`,
 //           }}
 //           style={{width: '100%', height: '70%', resizeMode: 'contain'}}
 //         />
@@ -222,7 +222,7 @@
 
 // const fetchData = async () => {
 //   try {
-//     const response = await axios.get('http://10.0.2.2:4000/api/product');
+//     const response = await axios.get('https://privily.co/api/product');
 //     const data = response.data;
 //     setCarouselItems(data);
 //   } catch (error) {
@@ -255,7 +255,7 @@
 //           }}>
 //           <Image
 //             source={{
-//               uri: `http://10.0.2.2:4000/storage/podsimage/${item.featuredImage}`,
+//               uri: `https://privily.co/storage/podsimage/${item.featuredImage}`,
 //             }}
 //             style={{width: '100%', height: '70%', resizeMode: 'contain'}}
 //           />
@@ -375,7 +375,7 @@
 //     try {
 //       setIsLoading(true);
 //       const response = await axios.get(
-//         'http://10.0.2.2:4000/api/product',
+//         'https://privily.co/api/product',
 //       );
 //       const data = response.data.map(item => ({
 //         ...item,
@@ -417,7 +417,7 @@
 //           {item.featuredImage ? (
 //             <Image
 //               source={{
-//                 uri: `http://10.0.2.2:4000${item.featuredImage}`,
+//                 uri: `https://privily.co${item.featuredImage}`,
 //               }}
 //               style={{width: '100%', height: '70%', resizeMode: 'contain'}}
 //             />
@@ -550,7 +550,7 @@
 //   const fetchData = async () => {
 //     try {
 //       setIsLoading(true);
-//       const response = await axios.get('http://10.0.2.2:4000/api/product');
+//       const response = await axios.get('https://privily.co/api/product');
 //       const data = response.data.map(item => ({
 //         ...item,
 //         featuredImage: item.images.length > 0 ? item.images[0].url : null,
@@ -594,7 +594,7 @@
 //           }}>
 //           <Image
 //             source={{
-//               uri: `http://10.0.2.2:4000${item.featuredImage}`,
+//               uri: `https://privily.co${item.featuredImage}`,
 //             }}
 //             style={{width: '100%', height: '70%', resizeMode: 'contain'}}
 //           />
@@ -729,7 +729,7 @@ const Slider = () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        'http://10.0.2.2:4000/api/product',
+        'https://privily.co/api/product',
       );
       const data = response.data
         .filter(item => !item.isBlocked) // Filter out blocked items
@@ -752,7 +752,7 @@ const Slider = () => {
   }, []);
 
   const renderItem = ({item}) => {
-    console.log("item",item.featuredImage)
+    console.log("item",item)
     return (
       <TouchableOpacity
         onPress={() => {
@@ -775,7 +775,7 @@ const Slider = () => {
           {item.featuredImage ? (
             <Image
               source={{
-                uri: `http://10.0.2.2:4000${item.featuredImage}`,
+                uri: `https://privily.co${item.featuredImage}`,
               }}
               style={{width: '100%', height: '60%', resizeMode: 'contain'}}
             />

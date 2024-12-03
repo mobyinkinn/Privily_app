@@ -35,7 +35,7 @@
 //     const fetchData = async () => {
 //       try {
 //         const response = await axios.get(
-//           `http://10.0.2.2:4000/api/product/filter?city=${locationName}`,
+//           `https://privily.co/api/product/filter?city=${locationName}`,
 //         );
 //      const data = response.data
 //         .filter(item => !item.isBlocked) // Filter out blocked items
@@ -61,7 +61,7 @@
 //        <View style={styles.imageContainer}>
 //          <Image
 //            source={{
-//              uri: `http://10.0.2.2:4000${item.url}`,
+//              uri: `https://privily.co${item.url}`,
 //            }}
 //            style={styles.image}
 //            onError={e =>
@@ -263,7 +263,7 @@ const DiscoverLocation = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          `http://10.0.2.2:4000/api/product/filter?city=${locationName}`,
+          `https://privily.co/api/product/filter?city=${locationName}`,
         );
         const data = response.data
           .filter(item => !item.isBlocked) // Filter out blocked items
@@ -291,7 +291,7 @@ const DiscoverLocation = () => {
       <View style={styles.imageContainer}>
         <Image
           source={{
-            uri: `http://10.0.2.2:4000${item.url}`,
+            uri: `https://privily.co${item.url}`,
           }}
           style={styles.image}
           onError={e =>

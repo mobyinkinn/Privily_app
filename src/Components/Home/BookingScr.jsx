@@ -15,15 +15,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import axios from 'axios';
-import moment, { duration } from 'moment-timezone';
+import moment, {duration} from 'moment-timezone';
 import {Skeleton} from '@rneui/themed';
 import {AuthContext} from '../../context/Authcontext';
 import {WebView} from 'react-native-webview';
-import debounce from 'lodash.debounce';
 
 const BookingScreen = () => {
   const route = useRoute();
-  const {slugs,title, origin} = route.params;
+  const {slugs, title, origin} = route.params;
   const [purpose, setPurpose] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -38,19 +37,29 @@ const BookingScreen = () => {
   const [checkoutUrl, setCheckoutUrl] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const navigation = useNavigation();
-  const {userToken, createBooking, fetchBookings} = useContext(AuthContext);
-  const [loading, setLoading] = useState(false); // Add loading state
+  const {
+    userToken,
+    createBooking,
+    checkoutID,
+    paymentResponse,
+    loading,
+    fetchBookings,
+    handleBookNow,
+    bookingres,
+  } = useContext(AuthContext);
   const [rate, setRate] = useState();
+  const [discount, setdiscount] = useState()
   const [timeSlotError, setTimeSlotError] = useState('');
   const [isDoneDisabled, setIsDoneDisabled] = useState(false);
-  const [bookingDatee, setBookingDate] = useState("");
+  const [bookingDatee, setBookingDate] = useState('');
   const [isStartDoneDisabled, setIsStartDoneDisabled] = useState(true);
   const [isEndDoneDisabled, setIsEndDoneDisabled] = useState(false);
   const [shortDescription, setShortDescription] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(-1);
   const [bookings, setBookings] = useState([]); // State for user's bookings
   useEffect(() => {
     fetchRate();
+    fetchDiscount();
     if (date) {
       fetchAvailability();
     }
@@ -63,9 +72,9 @@ const BookingScreen = () => {
         .format('YYYY-MM-DD');
       // const formattedDate = moment(date).format('YYYY-MM-DD');
       setBookingDate(formattedDate);
-      console.log("format date", formattedDate)
+      console.log('format date', formattedDate);
       const response = await axios.get(
-        `http://10.0.2.2:4000/api/product/availability/${slugs}?booking_date=${formattedDate}`,
+        `https://privily.co/api/product/availability/${slugs}?booking_date=${formattedDate}`,
       );
       console.log('response', response.data);
       const {product_availability} = response.data;
@@ -79,29 +88,201 @@ const BookingScreen = () => {
   const fetchRate = async () => {
     try {
       const response = await axios.get(
-        'http://10.0.2.2:4000/api/transactions/getrate',
+        'https://privily.co/api/transactions/getrate',
       );
       setRate(response.data.rate);
     } catch (error) {
       console.error('Error fetching rate:', error);
     }
   };
-
-  const validateFields = () => {
-    const errors = {};
-    if (!purpose) errors.purpose = 'Purpose is required';
-    if (selectedTimeSlots.length === 0) {
-      errors.timeSlots = 'Time slot is required';
-    } else {
-      const startTime = selectedTimeSlots[0];
-      const endTime = selectedTimeSlots[selectedTimeSlots.length - 1];
-      const duration = calculateDuration(startTime, endTime);
-      if (duration > 180) {
-        errors.timeSlots = 'Maximum booking time is 3 hours';
-      }
+  const fetchDiscount = async () => {
+    try {
+      const response = await axios.get(
+        'https://privily.co/api/transactions/getdiscount',
+      );
+      setdiscount(response.data.discount);
+    } catch (error) {
+      console.error('Error fetching rate:', error);
     }
-    return errors;
   };
+  useEffect(() => {
+    if (selectedTimeSlots.length >= 2) {
+      setErrors(prevErrors => {
+        const updatedErrors = {...prevErrors};
+        delete updatedErrors.timeSlots; // Clear the timeSlots error dynamically
+        return updatedErrors;
+      });
+    }
+  }, [selectedTimeSlots]);
+  const validateFields = () => {
+    const validationErrors = {};
+
+    // Validate purpose
+    if (!purpose) {
+      validationErrors.purpose = 'Purpose is required';
+    }
+
+    // Validate time slots (only check if user clicks Proceed without filling)
+    if (selectedTimeSlots.length < 2) {
+      validationErrors.timeSlots =
+        'Please select both start and end time slots.';
+    }
+
+    return validationErrors;
+  };
+  const onBookNowPress = async () => {
+  const validationErrors = validateFields();
+
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors); // Set the errors only when validation fails
+    return; // Stop execution if there are validation errors
+  }
+
+  if (bookings.length === 0 && amount === 0) {
+    // First booking with zero amount; directly create booking
+    try {
+      const bookingDate = moment(date).startOf('day').toISOString();
+      let startTime = moment(date)
+        .set({
+          hour: parseInt(selectedTimeSlots[0].split(':')[0]),
+          minute: parseInt(selectedTimeSlots[0].split(':')[1]),
+        })
+        .add(2, 'hours')
+        .toISOString();
+
+      let endTime = moment(date)
+        .set({
+          hour: parseInt(
+            selectedTimeSlots[selectedTimeSlots.length - 1].split(':')[0],
+          ),
+          minute: parseInt(
+            selectedTimeSlots[selectedTimeSlots.length - 1].split(':')[1],
+          ),
+        })
+        .add(2, 'hours')
+        .toISOString();
+
+      const currentTime = moment();
+      const newTime = currentTime.add(2, 'hours');
+
+      const bookingDetails = {
+        bookingPurpose: purpose,
+        shortDescription: shortDescription,
+        bookingDate: bookingDatee,
+        startTime,
+        endTime,
+        timeSlotNumber: '4',
+        status: newTime.isBefore(startTime) ? 'Pending' : 'Processing',
+        isBookingActive: true,
+      };
+
+      const bookingResponse = await createBooking(slugs, bookingDetails);
+
+      if (bookingResponse.message === 'Booking created successfully') {
+        Alert.alert('Success', 'Your booking has been successfully created!');
+        navigation.navigate('QrScreen', {
+          booking: bookingResponse.booking,
+          title,
+        });
+      } else {
+        Alert.alert('Error', 'Failed to create booking');
+      }
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      Alert.alert('Error', 'An error occurred while creating the booking');
+    }
+  } else {
+    // Proceed with payment for other cases
+    try {
+      await handleBookNow(amount, setCheckoutUrl, setShowPaymentModal);
+    } catch (error) {
+      Alert.alert('Error', 'An error occurred while processing your booking');
+      console.error('Booking error:', error);
+    }
+  }
+};
+
+  // const onBookNowPress = async () => {
+  //   const validationErrors = validateFields();
+
+  //   if (Object.keys(validationErrors).length > 0) {
+  //     setErrors(validationErrors); // Set the errors only when validation fails
+  //     return; // Stop execution if there are validation errors
+  //   }
+
+  //   try {
+  //     await handleBookNow(amount, setCheckoutUrl, setShowPaymentModal);
+  //   } catch (error) {
+  //     Alert.alert('Error', 'An error occurred while processing your booking');
+  //     console.error('Booking error:', error);
+  //   }
+  // };
+
+  // const validateFields = () => {
+  //   const validationErrors = {};
+
+  //   // Check if the purpose is provided
+  //   if (!purpose) {
+  //     validationErrors.purpose = 'Purpose is required';
+  //   }
+
+  //   // Check if start time and end time are selected
+  //   if (selectedTimeSlots.length <=2) {
+  //     validationErrors.timeSlots =
+  //       'Please select both start and end time slots.';
+  //   } else {
+  //     const startTime = selectedTimeSlots[0];
+  //     const endTime = selectedTimeSlots[selectedTimeSlots.length - 1];
+
+  //     if (!startTime || !endTime) {
+  //       validationErrors.timeSlots =
+  //         'Both start time and end time are required.';
+  //     } else {
+  //       const duration = calculateDuration(startTime, endTime);
+  //       if (duration > 180) {
+  //         validationErrors.timeSlots = 'Maximum booking time is 3 hours.';
+  //       } else if (duration <= 0) {
+  //         validationErrors.timeSlots = 'End time must be after the start time.';
+  //       }
+  //     }
+  //   }
+
+  //   return validationErrors;
+  // };
+
+  // const validateFields = () => {
+  //   const validationErrors = {};
+
+  //   if (!purpose) validationErrors.purpose = 'Purpose is required';
+  //   if (selectedTimeSlots.length === 0) {
+  //     validationErrors.timeSlots = 'Please select at least one time slot.';
+  //   } else {
+  //     const startTime = selectedTimeSlots[0];
+  //     const endTime = selectedTimeSlots[selectedTimeSlots.length - 1];
+  //     const duration = calculateDuration(startTime, endTime);
+  //     if (duration > 180) {
+  //       validationErrors.timeSlots = 'Maximum booking time is 3 hours.';
+  //     }
+  //   }
+
+  //   return validationErrors;
+  // };
+
+  // const validateFields = () => {
+  //   const errors = {};
+  //   if (!purpose) errors.purpose = 'Purpose is required';
+  //   if (selectedTimeSlots.length === 0) {
+  //     errors.timeSlots = 'Time slot is required';
+  //   } else {
+  //     const startTime = selectedTimeSlots[0];
+  //     const endTime = selectedTimeSlots[selectedTimeSlots.length - 1];
+  //     const duration = calculateDuration(startTime, endTime);
+  //     if (duration > 180) {
+  //       errors.timeSlots = 'Maximum booking time is 3 hours';
+  //     }
+  //   }
+  //   return errors;
+  // };
   // const handleBookNow = useCallback(
   //   debounce(async () => {
   //     if (loading) return;
@@ -115,7 +296,7 @@ const BookingScreen = () => {
 
   //       try {
   //         const response = await axios.post(
-  //           'http://10.0.2.2:4000/api/payments',
+  //           'https://privily.co/api/payments',
   //           {
   //             amount: amount * 100,
   //             currency: 'ZAR',
@@ -142,41 +323,62 @@ const BookingScreen = () => {
   //   [date, purpose, selectedTimeSlots, shortDescription, loading, rate],
   // );
 
+  // const onBookNowPress = async () => {
+  //   // Perform validation
+  //   const validationErrors = validateFields();
 
+  //   // If there are validation errors, update the errors state and stop execution
+  //   if (Object.keys(validationErrors).length > 0) {
+  //     setErrors(validationErrors);
+  //     return; // Stop execution
+  //   }
 
-  const handleBookNow = async () => {
-    if (loading) return;
+  //   // If validation passes, proceed with the booking
 
-    const validationErrors = validateFields();
+  //   try {
+  //     await handleBookNow(amount, setCheckoutUrl, setShowPaymentModal);
+  //   } catch (error) {
+  //     Alert.alert('Error', 'An error occurred while processing your booking');
+  //     console.error('Booking error:', error);
+  //   }
+  // };
 
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-    } else {
-      setLoading(true);
+  // const onBookNowPress = async () => {
+  //   // Perform validation
+  //   const validationErrors = validateFields();
 
-      try {
-        const response = await axios.post('http://10.0.2.2:4000/api/payments', {
-          amount: amount * 100,
-          currency: 'ZAR',
-          cancelUrl: 'https://example.com/cancel',
-          successUrl: 'https://example.com/success',
-          failureUrl: 'https://example.com/failure',
-        });
+  //   // If there are validation errors, update the errors state and stop execution
+  //   if (Object.keys(validationErrors).length > 0) {
+  //     setErrors(validationErrors);
+  //     return; // Stop execution
+  //   }
 
-        if (response.data && response.data.redirectUrl) {
-          setCheckoutUrl(response.data.redirectUrl);
-          setShowPaymentModal(true);
-        } else {
-          Alert.alert('Error', 'Failed to create checkout');
-        }
-      } catch (error) {
-        console.error('Error creating checkout:', error);
-        Alert.alert('Error', 'An error occurred while creating the checkout');
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+  //   // If all validations pass, proceed with booking
+  //   if (!amount) {
+  //     Alert.alert('Error', 'Amount is required');
+  //     return;
+  //   }
+
+  //   try {
+  //     await handleBookNow(amount, setCheckoutUrl, setShowPaymentModal);
+  //   } catch (error) {
+  //     Alert.alert('Error', 'An error occurred while processing your booking');
+  //     console.error('Booking error:', error);
+  //   }
+  // };
+
+  //  const onBookNowPress = async () => {
+  //   // if (!purpose){setPurpose('Purpose is required')}
+  //   // if (selectedTimeSlots.length === 0) {
+  //   //   errors.timeSlots = 'Time slot is required';
+  //   // }
+  //    if (!amount) {
+  //      Alert.alert('Error', 'Amount is required');
+  //      return;
+  //    }
+
+  //    await handleBookNow(amount, setCheckoutUrl, setShowPaymentModal);
+  //  };
 
   const newAmount = amount;
   // console.log('amountnew', newAmount);
@@ -191,9 +393,8 @@ const BookingScreen = () => {
     setShowDatePicker(Platform.OS === 'ios');
     setDate(currentDate);
     setSelectedTimeSlots([]);
-    setAmount("")
+    setAmount('');
   };
-
 
   const showDatepicker = () => {
     setShowDatePicker(true);
@@ -252,7 +453,7 @@ const BookingScreen = () => {
   // };
 
   // Update handleTimeSlotPress function
- 
+
   useEffect(() => {
     const loadBookings = async () => {
       try {
@@ -311,7 +512,7 @@ const BookingScreen = () => {
   //     setAmount(0); // Reset amount if no slots are selected
   //   }
   // };
-  
+
   const handleTimeSlotPress = slot => {
     let newSelectedSlots = [...selectedTimeSlots];
 
@@ -338,21 +539,21 @@ const BookingScreen = () => {
     // Calculate the amount with or without discount based on bookings array length
     if (newSelectedSlots.length > 0) {
       const currentTime = moment().format('HH:mm');
-      const currentDate = moment().format('YYYY-MM-DD')
+      const currentDate = moment().format('YYYY-MM-DD');
       let duration;
-      if(currentDate === bookingDatee){
-
-      if (currentTime >= newSelectedSlots[0]) {
-        duration = calculateDuration(
-          currentTime,
-          newSelectedSlots[newSelectedSlots.length - 1],
-        );
+      if (currentDate === bookingDatee) {
+        if (currentTime >= newSelectedSlots[0]) {
+          duration = calculateDuration(
+            currentTime,
+            newSelectedSlots[newSelectedSlots.length - 1],
+          );
+        } else {
+          duration = calculateDuration(
+            newSelectedSlots[0],
+            newSelectedSlots[newSelectedSlots.length - 1],
+          );
+        }
       } else {
-        duration = calculateDuration(
-          newSelectedSlots[0],
-          newSelectedSlots[newSelectedSlots.length - 1],
-        );
-      }}else{
         duration = calculateDuration(
           newSelectedSlots[0],
           newSelectedSlots[newSelectedSlots.length - 1],
@@ -360,9 +561,10 @@ const BookingScreen = () => {
       }
 
       let calculatedAmount = duration * rate;
+      let calculatedDiscount = rate * discount 
       // Apply discount if no bookings
       if (bookings.length === 0) {
-        calculatedAmount = Math.max(calculatedAmount - 150, 0); // Apply ZAR 150 discount
+        calculatedAmount = Math.max(calculatedAmount - calculatedDiscount, 0); 
       }
 
       setAmount(calculatedAmount);
@@ -525,7 +727,7 @@ const BookingScreen = () => {
   // };
 
   // For rendering start time slots
-  
+
   const renderStartTimeSlot = ({item, index}) => {
     const currentTime = moment(); // Get the current time
     const slotTime = moment(date).set({
@@ -597,115 +799,121 @@ const BookingScreen = () => {
     const len = array.length;
     return [...array.slice(times, len), ...array.slice(0, times)];
   };
-const renderTimeSlot = ({ item, index }) => {
-  const startTimeIndex = timeSlots.indexOf(selectedTimeSlots[0]); // Index of the selected start time
+  const renderTimeSlot = ({item, index}) => {
+    const startTimeIndex = timeSlots.indexOf(selectedTimeSlots[0]); // Index of the selected start time
 
-  const rotatedBookedSlots = rotateArray(bookedSlots, 70);
-  // console.log("before rotation", bookedSlots);
-  // console.log("after", rotatedBookedSlots);
+    // Check if the current slot is the selected start time
+    const isStartTime = item === selectedTimeSlots[0];
 
-  const isNextSlotBooked = rotatedBookedSlots[index + 1]; // Check if the next slot is booked
+    // Disable time slots before the selected start time
+    const isBeforeStartTime = index < startTimeIndex;
 
-  const isBeforeStartTime = index <= startTimeIndex && item !== selectedTimeSlots[0];
+    // Check if the slot is booked or unavailable
+    const isSlotUnavailable = bookedSlots[index];
 
-  const isSlotUnavailable = isNextSlotBooked; // This ensures that the next slot is booked
+    // Determine if the slot should be disabled
+    const isDisabled = isBeforeStartTime || isSlotUnavailable || isStartTime;
 
-  const isDisabled = isBeforeStartTime || isSlotUnavailable;
-
-  return (
-    <TouchableOpacity
-      style={[
-        styles.timeSlot,
-        selectedTimeSlots.includes(item) && styles.selectedTimeSlot,
-        isDisabled && styles.bookedTimeSlot, // Disable the slot if needed
-      ]}
-      onPress={() => !isDisabled && handleTimeSlotPress(item)}
-      disabled={isDisabled} // Disable slot if it's booked or if the next slot is booked
-    >
-      <Text
+    return (
+      <TouchableOpacity
         style={[
-          styles.timeSlotText,
-          selectedTimeSlots.includes(item) && styles.selectedTimeSlotText,
-          isDisabled && styles.bookedTimeSlotText, // Change text color for disabled slots
+          styles.timeSlot,
+          isStartTime && styles.startTimeHighlight, // Yellow color for the start time
+          isBeforeStartTime && styles.disabledTimeSlot, // Grey color for slots before start time
+          selectedTimeSlots.includes(item) &&
+            !isStartTime &&
+            styles.selectedTimeSlot,
+          isDisabled && styles.bookedTimeSlot, // Disable the slot if needed
         ]}
+        onPress={() => !isDisabled && handleTimeSlotPress(item)}
+        disabled={isDisabled} // Disable the slot if it's the start time or unavailable
       >
-        {item}
-      </Text>
-    </TouchableOpacity>
-  );
-};
+        <Text
+          style={[
+            styles.timeSlotText,
+            isStartTime && styles.startTimeHighlightText, // Yellow text for the start time
+            isBeforeStartTime && styles.disabledTimeSlotText, // Grey text for disabled slots
+            selectedTimeSlots.includes(item) &&
+              !isStartTime &&
+              styles.selectedTimeSlotText,
+          ]}>
+          {item}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
-// const renderTimeSlot = ({item, index}) => {
-//   const startTimeIndex = timeSlots.indexOf(selectedTimeSlots[0]); // Index of the selected start time
-//   const nextBookedSlotIndex = bookedSlots.findIndex(
-//     (booked, i) => i > startTimeIndex && booked,
-//   ); // Find the next booked slot after the start time
+  // const renderTimeSlot = ({item, index}) => {
+  //   const startTimeIndex = timeSlots.indexOf(selectedTimeSlots[0]); // Index of the selected start time
+  //   const nextBookedSlotIndex = bookedSlots.findIndex(
+  //     (booked, i) => i > startTimeIndex && booked,
+  //   ); // Find the next booked slot after the start time
 
-//   // Disable time slots before the selected start time and also limit up to the next booked time
-//   const isBeforeStartTime =
-//     index <= startTimeIndex && item !== selectedTimeSlots[0];
-//   const isBeyondNextBookedSlot =
-//     nextBookedSlotIndex !== -1 && index >= nextBookedSlotIndex; // Disable slots after the next booked slot
+  //   // Disable time slots before the selected start time and also limit up to the next booked time
+  //   const isBeforeStartTime =
+  //     index <= startTimeIndex && item !== selectedTimeSlots[0];
+  //   const isBeyondNextBookedSlot =
+  //     nextBookedSlotIndex !== -1 && index >= nextBookedSlotIndex; // Disable slots after the next booked slot
 
-//   const isDisabled = isBeforeStartTime || isBeyondNextBookedSlot;
+  //   const isDisabled = isBeforeStartTime || isBeyondNextBookedSlot;
 
-//   return (
-//     <TouchableOpacity
-//       style={[
-//         styles.timeSlot,
-//         selectedTimeSlots.includes(item) && styles.selectedTimeSlot,
-//         isDisabled && styles.bookedTimeSlot, // Disable slots that exceed the rules
-//       ]}
-//       onPress={() => !isDisabled && handleTimeSlotPress(item)}
-//       disabled={isDisabled} // Disable slots before start time or beyond next booked time
-//     >
-//       <Text
-//         style={[
-//           styles.timeSlotText,
-//           selectedTimeSlots.includes(item) && styles.selectedTimeSlotText,
-//           isDisabled && styles.bookedTimeSlotText, // Style for disabled slots
-//         ]}>
-//         {item}
-//       </Text>
-//     </TouchableOpacity>
-//   );
-// };
-// const renderTimeSlot = ({item, index}) => {
-//   const startTimeIndex = timeSlots.indexOf(selectedTimeSlots[0]); // Index of the selected start time
+  //   return (
+  //     <TouchableOpacity
+  //       style={[
+  //         styles.timeSlot,
+  //         selectedTimeSlots.includes(item) && styles.selectedTimeSlot,
+  //         isDisabled && styles.bookedTimeSlot, // Disable slots that exceed the rules
+  //       ]}
+  //       onPress={() => !isDisabled && handleTimeSlotPress(item)}
+  //       disabled={isDisabled} // Disable slots before start time or beyond next booked time
+  //     >
+  //       <Text
+  //         style={[
+  //           styles.timeSlotText,
+  //           selectedTimeSlots.includes(item) && styles.selectedTimeSlotText,
+  //           isDisabled && styles.bookedTimeSlotText, // Style for disabled slots
+  //         ]}>
+  //         {item}
+  //       </Text>
+  //     </TouchableOpacity>
+  //   );
+  // };
+  // const renderTimeSlot = ({item, index}) => {
+  //   const startTimeIndex = timeSlots.indexOf(selectedTimeSlots[0]); // Index of the selected start time
 
-//   // Rotate the bookedSlots array for the end time modal
-//   const rotatedBookedSlots = rotateArray(bookedSlots, startTimeIndex);
+  //   // Rotate the bookedSlots array for the end time modal
+  //   const rotatedBookedSlots = rotateArray(bookedSlots, startTimeIndex);
 
-//   // Disable time slots before the selected start time and also limit up to the next booked time
-//   const isBeforeStartTime =
-//     index <= startTimeIndex && item !== selectedTimeSlots[0];
+  //   // Disable time slots before the selected start time and also limit up to the next booked time
+  //   const isBeforeStartTime =
+  //     index <= startTimeIndex && item !== selectedTimeSlots[0];
 
-//   const isBooked = rotatedBookedSlots[index]; // Use the rotated booked slots array
-//   const isBeyondNextBookedSlot = isBooked; // You can define the condition as per your requirements
+  //   const isBooked = rotatedBookedSlots[index]; // Use the rotated booked slots array
+  //   const isBeyondNextBookedSlot = isBooked; // You can define the condition as per your requirements
 
-//   const isDisabled = isBeforeStartTime || isBooked;
+  //   const isDisabled = isBeforeStartTime || isBooked;
 
-//   return (
-//     <TouchableOpacity
-//       style={[
-//         styles.timeSlot,
-//         selectedTimeSlots.includes(item) && styles.selectedTimeSlot,
-//         isDisabled && styles.bookedTimeSlot, // Disable slots that exceed the rules
-//       ]}
-//       onPress={() => !isDisabled && handleTimeSlotPress(item)}
-//       disabled={isDisabled} // Disable slots before start time or beyond next booked time
-//     >
-//       <Text
-//         style={[
-//           styles.timeSlotText,
-//           selectedTimeSlots.includes(item) && styles.selectedTimeSlotText,
-//           isDisabled && styles.bookedTimeSlotText, // Style for disabled slots
-//         ]}>
-//         {item}
-//       </Text>
-//     </TouchableOpacity>
-//   );
-// };
+  //   return (
+  //     <TouchableOpacity
+  //       style={[
+  //         styles.timeSlot,
+  //         selectedTimeSlots.includes(item) && styles.selectedTimeSlot,
+  //         isDisabled && styles.bookedTimeSlot, // Disable slots that exceed the rules
+  //       ]}
+  //       onPress={() => !isDisabled && handleTimeSlotPress(item)}
+  //       disabled={isDisabled} // Disable slots before start time or beyond next booked time
+  //     >
+  //       <Text
+  //         style={[
+  //           styles.timeSlotText,
+  //           selectedTimeSlots.includes(item) && styles.selectedTimeSlotText,
+  //           isDisabled && styles.bookedTimeSlotText, // Style for disabled slots
+  //         ]}>
+  //         {item}
+  //       </Text>
+  //     </TouchableOpacity>
+  //   );
+  // };
 
   const getStartSelectedTimeSlotsText = str => {
     if (selectedTimeSlots.length === 0) {
@@ -731,9 +939,46 @@ const renderTimeSlot = ({ item, index }) => {
   const handleBackHome = () => {
     navigation.goBack();
   };
+  const handleTransaction = async () => {
+    // if (!paymentResponse || !bookingres) {
+    //   throw new Error('Missing payment or booking response');
+    // }
+    console.log('asfasfasf', paymentResponse);
+    console.log('grfgfgfgfg', bookingres);
 
+    // const transactionPayload = {
+    //   paymentDetails: paymentResponse,
+    //   bookingDetails: bookingres,
+    // };
+    const transactiondata = {
+      amount: paymentResponse.amount,
+      currency: paymentResponse.currency,
+      checkoutId: paymentResponse.id,
+      merchantId: paymentResponse.merchantId,
+      paymentFacilitator: paymentResponse.metadata.paymentFacilitator,
+      status: paymentResponse.status,
+    };
+    try {
+      const response = await axios.post(
+        'https://privily.co/api/transactions',
+        transactiondata,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${userToken}`,
+          },
+        },
+      );
+
+      console.log('Transaction API Response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error in Transaction API:', error);
+      throw error;
+    }
+  };
   const handlePaymentSuccess = async navState => {
-
+    console.log('hello');
     if (navState.url.startsWith('https://example.com/success')) {
       const bookingDate = moment(date).startOf('day').toISOString();
       let startTime = moment(date)
@@ -741,10 +986,10 @@ const renderTimeSlot = ({ item, index }) => {
           hour: parseInt(selectedTimeSlots[0].split(':')[0]),
           minute: parseInt(selectedTimeSlots[0].split(':')[1]),
         })
-        .add(2, "hours")
+        .add(2, 'hours')
         .toISOString();
 
-        console.log("Start time", startTime)
+      console.log('Start time', startTime);
       let endTime = moment(date)
         .set({
           hour: parseInt(
@@ -756,28 +1001,44 @@ const renderTimeSlot = ({ item, index }) => {
         })
         .add(2, 'hours')
         .toISOString();
- console.log('end time', title);
+      console.log('end time', title);
+      const currentTime = moment();
+      const newTime = currentTime.add(2, 'hours');
+      console.log('fir se console', newTime.isBefore(startTime));
       const bookingDetails = {
         bookingPurpose: purpose,
         shortDescription: shortDescription, // Include the short description
-        bookingDatee,
+        bookingDate: bookingDatee,
         startTime,
         endTime,
         timeSlotNumber: '4',
-        status: 'Pending',
+        status: newTime.isBefore(startTime) ? 'Pending' : 'Processing',
         isBookingActive: true,
       };
       console.log('bookingDetails', bookingDetails);
 
       try {
         const bookingResponse = await createBooking(slugs, bookingDetails);
+        console.log("hello1")
         if (bookingResponse.message === 'Booking created successfully') {
-          console.log('bookingResponse', bookingResponse);
+          // Send transaction data
+        console.log('hello2');
+
+          const transactionResponse = await handleTransaction();
+        console.log('hello3');
+
+          console.log('Transaction Response:', transactionResponse);
+        console.log('hello4');
+
           setShowPaymentModal(false);
+        console.log('hello5');
+
           navigation.navigate('QrScreen', {
             booking: bookingResponse.booking,
             title,
           });
+        console.log('hello6');
+
         } else {
           Alert.alert('Error', 'Failed to create booking');
         }
@@ -785,10 +1046,10 @@ const renderTimeSlot = ({ item, index }) => {
         console.error('Error creating booking:', error);
         Alert.alert('Error', 'An error occurred while creating the booking');
       }
-    } else if (navState.url === 'https://example.com/cancel') {
+    } else if (navState.url === 'myapp://Cancel') {
       Alert.alert('Cancelled', 'Payment was cancelled');
       setShowPaymentModal(false);
-    } else if (navState.url === 'https://example.com/failure') {
+    } else if (navState.url === 'myapp://Failure') {
       Alert.alert('Failure', 'Payment failed');
       setShowPaymentModal(false);
     }
@@ -806,9 +1067,12 @@ const renderTimeSlot = ({ item, index }) => {
   // Use handleSubmit on your button
   return (
     <View style={styles.container}>
-      <View style={{display: 'flex', flexDirection: 'row', gap: 70}}>
-        <TouchableOpacity onPress={handleBackHome} style={styles.backButton}>
-          <Icon name={'arrow-back'} size={30} color={'black'} />
+      <View
+        style={{display: 'flex', flexDirection: 'row', position: 'relative'}}>
+        <TouchableOpacity
+          onPress={handleBackHome}
+          style={{position: 'absolute', zIndex: 11}}>
+          <Icon name="arrow-back" size={30} color="black" />
         </TouchableOpacity>
         <Text style={styles.header}>Booking</Text>
       </View>
@@ -847,20 +1111,22 @@ const renderTimeSlot = ({ item, index }) => {
             {getStartSelectedTimeSlotsText('Start time')}
           </Text>
         </TouchableOpacity>
-        {errors.timeSlots && (
-          <Text style={styles.errorText}>{errors.timeSlots}</Text>
-        )}
+
         <TouchableOpacity
-          style={styles.dropdownContainer2}
-          onPress={() => setshowendTime(true)}>
+          style={[
+            styles.dropdownContainer2,
+            !selectedTimeSlots.length && styles.disabledButton, // Disable if no start time is selected
+          ]}
+          onPress={() => selectedTimeSlots.length && setshowendTime(true)} // Only allow if start time is selected
+          disabled={!selectedTimeSlots.length}>
           <Text style={styles.pickerText}>
             {getEndSelectedTimeSlotsText('End time')}
           </Text>
         </TouchableOpacity>
-        {errors.timeSlots && (
-          <Text style={styles.errorText}>{errors.timeSlots}</Text>
-        )}
       </View>
+      {errors.timeSlots && (
+        <Text style={styles.errorText}>{errors.timeSlots}</Text>
+      )}
       <Modal
         visible={showStarttime}
         animationType="slide"
@@ -930,19 +1196,19 @@ const renderTimeSlot = ({ item, index }) => {
         placeholderTextColor="#000"
       />
 
-      {newAmount > 0 ? (
+      {newAmount >= 0 ? (
         <>
           <Text style={styles.amountText}>Amount: {newAmount} ZAR</Text>
           {bookings.length > 0 ? (
-            <Text>
+            <Text style={styles.ratecolor}>
               This rate is based on {rate} ZAR per minute. Your total price is{' '}
               {(newAmount / rate) * rate} ZAR.
             </Text>
           ) : (
-            <Text style={{color: '#000'}}>
-              You are enjoying the first 15 minutes for free. This rate is based
-              on {rate} ZAR per minute. Your total price is{' '}
-              {(newAmount / rate) * rate} ZAR.
+            <Text style={styles.ratecolor}>
+              Your 1st 15 minutes after registration is on us ! Enjoy your
+              productive session !. This rate is based on {rate} ZAR per minute.
+              Your total price is {(newAmount / rate) * rate} ZAR.
             </Text>
           )}
         </>
@@ -957,7 +1223,7 @@ const renderTimeSlot = ({ item, index }) => {
       )}
       <TouchableOpacity
         style={styles.bookNowButton}
-        onPress={handleBookNow}
+        onPress={onBookNowPress}
         disabled={loading} // Disable button during loading
       >
         <Text style={styles.bookNowButtonText}>
@@ -998,7 +1264,6 @@ const renderTimeSlot = ({ item, index }) => {
     </View>
   );
 };
-
 const paddingValue = Platform.OS === 'ios' ? 28 : 10;
 const paddingTopValue = Platform.OS === 'ios' ? 50 : 2;
 const styles = StyleSheet.create({
@@ -1018,6 +1283,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
+
+  startTimeHighlight: {
+    backgroundColor: '#FFD700',
+    borderColor: '#FFD700',
+  },
+
+  startTimeHighlightText: {
+    color: 'red', // Black text for better contrast with yellow
+  },
+
+  disabledTimeSlot: {
+    backgroundColor: '#ccc', // Grey color for disabled slots
+    borderColor: '#ccc',
+  },
+
+  disabledTimeSlotText: {
+    color: '#999', // Grey text for disabled slots
+  },
+
   skeleton: {
     height: 50,
     width: '100%',
@@ -1034,6 +1318,8 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
+    width: '100%',
   },
   dropdownContainer: {
     marginBottom: 20,
@@ -1060,6 +1346,11 @@ const styles = StyleSheet.create({
     height: 50,
     paddingLeft: 11,
   },
+  disabledButton: {
+    backgroundColor: '#ccc',
+    borderColor: '#ccc',
+  },
+
   directionstyle: {
     display: 'flex',
     flexDirection: 'row',
@@ -1109,7 +1400,7 @@ const styles = StyleSheet.create({
     alignItems: 'left',
     position: 'relative', // To position the text overlay
   },
- 
+
   selectedTimeSlot: {
     backgroundColor: '#FF1200',
     borderColor: '#FF1200',
@@ -1132,6 +1423,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#000',
+  },
+  ratecolor: {
+    color: '#000',
+    fontSize: 16,
   },
   bookNowButton: {
     backgroundColor: '#FF1200',
