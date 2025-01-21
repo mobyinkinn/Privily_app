@@ -79,7 +79,7 @@ const PodDetailPage = () => {
         'https://privily.co/api/location/features',
       );
       setFeatures(response.data);
-      console.log('Features:', response.data);
+      console.log('important bkcuodiu:', response.data);
     } catch (error) {
       console.error('Error fetching features:', error);
       setError('Error fetching features');
@@ -156,7 +156,7 @@ const req = [
   console.log('podDatafeatures', podData?.features);
 
   // Calculate the number of static features to show based on the dynamic features length
-  const staticFeaturesToShow = featuress.slice(0, features.length);
+  const staticFeaturesToShow = features.slice(0, features.length);
 
   return (
     <ScrollView style={styles.container}>
@@ -230,7 +230,7 @@ const req = [
               style={styles.bookButton}
               onPress={() => {
                 navigation.navigate('BookingScreen', {
-                  title:podData.title,
+                  title: podData.title,
                   slugs: podData._id,
                   origin: 'PodDetailPage',
                 });
@@ -245,7 +245,7 @@ const req = [
               <View style={{display: 'flex'}}>
                 {podData?.features.map((feature, index) => (
                   <View key={index} style={styles.featureRow}>
-                    {featuress
+                    {features
                       .filter(el => feature.name === el.name)
                       .map((feature, index) => (
                         <View key={index} style={{margin: 5.5}}>
