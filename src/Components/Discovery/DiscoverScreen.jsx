@@ -217,8 +217,7 @@ const styles = StyleSheet.create({
   address: {
     fontSize: 18,
     color: '#666',
-    marginBottom: 10,
-    marginTop: 10,
+    margin:10
   },
   features: {
     display: 'flex',

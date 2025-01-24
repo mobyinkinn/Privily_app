@@ -191,12 +191,20 @@ const AllBookings = () => {
 
   return (
     <View style={styles.container}>
-      <View style={{display: 'flex', flexDirection: 'row', gap: 80}}>
-        <TouchableOpacity onPress={handleBackHome} style={styles.backButton}>
-          <Icon name={'arrow-back'} size={FONTSIZE.size_30} color={'black'} />
-        </TouchableOpacity>
-        <Text style={styles.header}>My Booking</Text>
-      </View>
+      <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                position: 'relative',
+                marginTop: Platform.OS === 'ios' ? 50 : 0,
+              }}>
+              <TouchableOpacity
+                onPress={handleBackHome}
+                style={{position: 'absolute', zIndex: 11}}>
+                <Icon name="arrow-back" size={30} color="black" />
+              </TouchableOpacity>
+              <Text style={styles.header}>All Booking</Text>
+            </View>
       <View style={styles.tabContainer}>
         {['All', 'Pending', 'Processing', 'Completed'].map(tab => (
           <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
@@ -253,6 +261,8 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
+    width: '100%',
   },
   title: {
     fontSize: 24,

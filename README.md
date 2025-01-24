@@ -123,20 +123,20 @@ Re-enter new password:
 What is your first and last name?
   [Unknown]:  Prasenjit Sinha
 What is the name of your organizational unit?
-  [Unknown]:  Privily
+  [Unknown]:  AwesomeProject
 What is the name of your organization?
-  [Unknown]:  Privily 
+  [Unknown]:  AwesomeProject 
 What is the name of your City or Locality?
   [Unknown]:  South Africa
 What is the name of your State or Province?
   [Unknown]:  South africa
 What is the two-letter country code for this unit?
   [Unknown]:  27
-Is CN=Prasenjit Sinha, OU=Privily, O="Privily ", L=South Africa, ST=South africa, C=27 correct?
+Is CN=Prasenjit Sinha, OU=AwesomeProject, O="AwesomeProject ", L=South Africa, ST=South africa, C=27 correct?
   [no]:  yes
 
 Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,000 days
-        for: CN=Prasenjit Sinha, OU=Privily, O="Privily ", L=South Africa, ST=South africa, C=27
+        for: CN=Prasenjit Sinha, OU=AwesomeProject, O="AwesomeProject ", L=South Africa, ST=South africa, C=27
 [Storing my-upload-key.keystore]
 mobyink@Mobyinks-MacBook-Air Home % 
  *  History restored 

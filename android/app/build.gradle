@@ -74,10 +74,10 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.privily'
+    namespace 'com.AwesomeProject'
     
     defaultConfig {
-        applicationId "com.privily"
+        applicationId "com.AwesomeProject"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 28

@@ -381,6 +381,7 @@ const getLocation = () => {
         style={[
           styles.sidebar,
           {transform: [{translateX: slideAnim}]}, // Apply the animated transform
+
         ]}>
         <TouchableOpacity onPress={closeSidebar} style={styles.closeButton}>
           <Icon name="close" size={30} color="#000" />
@@ -497,6 +498,7 @@ const styles = StyleSheet.create({
   closeButton: {
     alignSelf: 'flex-end',
     padding: 10,
+    paddingTop:50
   },
   corporatePodsText: {
     position: 'absolute',

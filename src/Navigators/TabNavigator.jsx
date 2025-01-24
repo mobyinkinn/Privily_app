@@ -226,7 +226,11 @@ const TabNavigator = () => {
         screenOptions={({route}) => ({
           headerShown: false,
           tabBarHideOnKeyboard: true,
-          tabBarStyle: {height: SPACING.space_10 * 5.1},
+          tabBarStyle: {
+            height: Platform.OS === 'ios' ? 70 : SPACING.space_10 * 6.1,
+            paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+            paddingTop: Platform.OS === 'ios' ? 5 : 0,
+          },
           tabBarIcon: ({focused, color, size}) => {
             let iconName;
             let badgeCount = 0;
@@ -303,7 +307,7 @@ const TabNavigator = () => {
 
         <Tab.Screen
           name="Notification"
-        component={NotificationStackScreen}
+          component={NotificationStackScreen}
           options={{
             unmountOnBlur: true,
           }}

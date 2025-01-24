@@ -21,12 +21,12 @@ const PrivacyPiolicy = () => {
     {
       heading: '1. Introduction',
       description:
-        '1. Privily is committed to protecting the privacy and security of your personal information. This Privacy and Data Protection Policy outlines how we collect, use, disclose, and safeguard your information when you use our Privacy Work Pod services.',
+        '1. privily is committed to protecting the privacy and security of your personal information. This Privacy and Data Protection Policy outlines how we collect, use, disclose, and safeguard your information when you use our Privacy Work Pod services.',
     },
     {
       heading: '2. Information We Collect',
       description:
-        "1. Personal Information: We may collect personal information, including but not limited to names, contact details, and payment information, when you use our platform to book work pods. 2. Booking Information: We collect data related to your work pod bookings, including dates, times, and preferences. 3. Usage Data: We may collect information about your use of Privily's services, including session times and duration.",
+        "1. Personal Information: We may collect personal information, including but not limited to names, contact details, and payment information, when you use our platform to book work pods. 2. Booking Information: We collect data related to your work pod bookings, including dates, times, and preferences. 3. Usage Data: We may collect information about your use of privily's services, including session times and duration.",
     },
     {
       heading: '3. How We Use Your Information',
@@ -36,7 +36,7 @@ const PrivacyPiolicy = () => {
     {
       heading: '4. Data Security',
       description:
-        "1. Personal Information: We may collect personal information, including but not limited to names, contact details, and payment information, when you use our platform to book work pods. 2. Booking Information: We collect data related to your work pod bookings, including dates, times, and preferences. 3. Usage Data: We may collect information about your use of Privily's services, including session times and duration.",
+        "1. Personal Information: We may collect personal information, including but not limited to names, contact details, and payment information, when you use our platform to book work pods. 2. Booking Information: We collect data related to your work pod bookings, including dates, times, and preferences. 3. Usage Data: We may collect information about your use of privily's services, including session times and duration.",
     },
     {
       heading: '5. Data Retention',
@@ -67,12 +67,20 @@ const PrivacyPiolicy = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={{display: 'flex', flexDirection: 'row', gap: 60}}>
-        <TouchableOpacity onPress={handleBackHome} style={styles.backButton}>
-          <Icon name={'arrow-back'} size={FONTSIZE.size_30} color={'black'} />
-        </TouchableOpacity>
-        <Text style={styles.header}>Privacy Policy</Text>
-      </View>
+       <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      position: 'relative',
+                      marginTop: Platform.OS === 'ios' ? 50 : 0,
+                    }}>
+                    <TouchableOpacity
+                      onPress={handleBackHome}
+                      style={{position: 'absolute', zIndex: 11}}>
+                      <Icon name="arrow-back" size={30} color="black" />
+                    </TouchableOpacity>
+                    <Text style={styles.header}>Privacy Policy</Text>
+                  </View>
       {lists.map((item, index) => (
         <View key={index} style={styles.section}>
           <Text style={styles.heading}>{item.heading}</Text>
@@ -94,6 +102,8 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
+    width: '100%',
   },
   backButton: {
     padding: 2,

@@ -57,6 +57,27 @@ const BookingScreen = () => {
   const [shortDescription, setShortDescription] = useState('');
   const [amount, setAmount] = useState(-1);
   const [bookings, setBookings] = useState([]); // State for user's bookings
+  const [selectedValue, setSelectedValue] = useState('');
+  const options = [
+    {label: 'Meeting', value: 'meeting'},
+    {label: 'Work', value: 'work'},
+    {label: 'Personal', value: 'personal'},
+  ];
+
+  const handleSelect = value => {
+    setSelectedValue(value);
+  };
+   const [showModal, setShowModal] = useState(false);
+
+   const onDateChange = (event, selectedDate) => {
+     if (selectedDate) {
+       setDate(selectedDate); // Automatically update the selected date
+     }
+   };
+
+   const handleDone = () => {
+     setShowModal(false); // Close modal on "Done"
+   };
   useEffect(() => {
     fetchRate();
     fetchDiscount();
@@ -118,8 +139,8 @@ const BookingScreen = () => {
     const validationErrors = {};
 
     // Validate purpose
-    if (!purpose) {
-      validationErrors.purpose = 'Purpose is required';
+    if (!selectedValue) {
+      validationErrors.selectedValue = 'Purpose is required';
     }
 
     // Validate time slots (only check if user clicks Proceed without filling)
@@ -166,7 +187,7 @@ const BookingScreen = () => {
       const newTime = currentTime.add(2, 'hours');
 
       const bookingDetails = {
-        bookingPurpose: purpose,
+        bookingPurpose: selectedValue,
         shortDescription: shortDescription,
         bookingDate: bookingDatee,
         startTime,
@@ -388,13 +409,13 @@ const BookingScreen = () => {
     return endHours * 60 + endMinutes - (startHours * 60 + startMinutes);
   };
 
-  const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setShowDatePicker(Platform.OS === 'ios');
-    setDate(currentDate);
-    setSelectedTimeSlots([]);
-    setAmount('');
-  };
+  // const onDateChange = (event, selectedDate) => {
+  //   const currentDate = selectedDate || date;
+  //   setShowDatePicker(Platform.OS === 'ios');
+  //   setDate(currentDate);
+  //   setSelectedTimeSlots([]);
+  //   setAmount('');
+  // };
 
   const showDatepicker = () => {
     setShowDatePicker(true);
@@ -939,6 +960,10 @@ const BookingScreen = () => {
   const handleBackHome = () => {
     navigation.goBack();
   };
+
+  const handleModalOFF = () => {
+    setshowendTime(false);
+  };
   const handleTransaction = async () => {
     // if (!paymentResponse || !bookingres) {
     //   throw new Error('Missing payment or booking response');
@@ -1006,7 +1031,7 @@ const BookingScreen = () => {
       const newTime = currentTime.add(2, 'hours');
       console.log('fir se console', newTime.isBefore(startTime));
       const bookingDetails = {
-        bookingPurpose: purpose,
+        bookingPurpose: selectedValue,
         shortDescription: shortDescription, // Include the short description
         bookingDate: bookingDatee,
         startTime,
@@ -1068,7 +1093,12 @@ const BookingScreen = () => {
   return (
     <View style={styles.container}>
       <View
-        style={{display: 'flex', flexDirection: 'row', position: 'relative'}}>
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          position: 'relative',
+          marginTop: Platform.OS === 'ios' ? 50 : 0,
+        }}>
         <TouchableOpacity
           onPress={handleBackHome}
           style={{position: 'absolute', zIndex: 11}}>
@@ -1076,7 +1106,7 @@ const BookingScreen = () => {
         </TouchableOpacity>
         <Text style={styles.header}>Booking</Text>
       </View>
-      <View style={styles.dropdownContainer}>
+      {/* <View style={styles.dropdownContainer}>
         <Picker
           selectedValue={purpose}
           style={styles.picker}
@@ -1086,10 +1116,108 @@ const BookingScreen = () => {
           <Picker.Item label="Work" value="work" />
           <Picker.Item label="Personal" value="personal" />
         </Picker>
-      </View>
-      {errors.purpose && <Text style={styles.errorText}>{errors.purpose}</Text>}
+      </View> */}
+      {Platform.OS === 'ios' ? (
+        <View style={styles.radioContainer}>
+          <Text style={styles.label}>Select Purpose</Text>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-around',
+            }}>
+            {options.map(option => (
+              <TouchableOpacity
+                key={option.value}
+                style={styles.radioButton}
+                onPress={() => handleSelect(option.value)}>
+                <View
+                  style={[
+                    styles.radioCircle,
+                    selectedValue === option.value && styles.radioSelected,
+                  ]}
+                />
+                <Text style={styles.radioLabel}>{option.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      ) : (
+        <View style={styles.dropdownContainer}>
+          <Picker
+            selectedValue={selectedValue}
+            style={styles.picker}
+            onValueChange={value => handleSelect(value)}>
+            <Picker.Item label="Select Purpose" value="" />
+            {options.map(option => (
+              <Picker.Item
+                key={option.value}
+                label={option.label}
+                value={option.value}
+              />
+            ))}
+          </Picker>
+        </View>
+      )}
+      {errors.selectedValue && (
+        <Text style={styles.errorText}>{errors.selectedValue}</Text>
+      )}
+      <View style={{paddingTop: Platform.OS === 'ios' ? 20 : 0}}>
+        <TouchableOpacity
+          style={styles.dropdownContainer}
+          onPress={() => setShowModal(true)}>
+          <Text style={styles.pickerText}>
+            {date.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
+        {/* Modal for iOS Date Picker */}
+        {Platform.OS === 'ios' && (
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={showModal}
+            onRequestClose={() => setShowModal(false)}>
+            <View style={styles.modalContainer2}>
+              <View style={styles.pickerContainer}>
+                <DateTimePicker
+                  value={date}
+                  mode="date"
+                  display="spinner"
+                  onChange={onDateChange} // Automatically selects the date
+                  minimumDate={new Date()} // Disable past dates
+                />
+                <TouchableOpacity
+                  style={styles.doneButton}
+                  onPress={handleDone}>
+                  <Text style={styles.doneButtonText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        )}
+
+        {/* Android Picker (if needed) */}
+        {Platform.OS === 'android' && showModal && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowModal(false);
+              if (selectedDate) {
+                setDate(selectedDate);
+              }
+            }}
+            minimumDate={new Date()} // Disable past dates
+          />
+        )}
+      </View>
+      {/* <TouchableOpacity
         style={styles.dropdownContainer}
         onPress={showDatepicker}>
         <Text style={styles.pickerText}>{date.toDateString()}</Text>
@@ -1098,11 +1226,11 @@ const BookingScreen = () => {
         <DateTimePicker
           value={date}
           mode="date"
-          display="default"
+          display="inline"
           onChange={onDateChange}
           minimumDate={new Date()} // Disable past dates
         />
-      )}
+      )} */}
       <View style={styles.directionstyle}>
         <TouchableOpacity
           style={styles.dropdownContainer2}
@@ -1134,7 +1262,20 @@ const BookingScreen = () => {
         onRequestClose={() => setshowStarttime(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Select Time Slots</Text>
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                position: 'relative',
+                marginTop: Platform.OS === 'ios' ? 10 : 0,
+              }}>
+              <TouchableOpacity
+                onPress={() => setshowStarttime(false)}
+                style={{position: 'absolute', zIndex: 11}}>
+                <Icon name="close" size={30} color="black" />
+              </TouchableOpacity>
+              <Text style={styles.header}>Select Start Time</Text>
+            </View>
             {timeSlotError ? (
               <Text style={styles.errorText}>{timeSlotError}</Text>
             ) : null}
@@ -1163,10 +1304,23 @@ const BookingScreen = () => {
         visible={showendTime}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setshowendTime(false)}>
+        onRequestClose={() => setshowendTime(true)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Select Time Slots</Text>
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                position: 'relative',
+                marginTop: Platform.OS === 'ios' ? 10 : 0,
+              }}>
+              <TouchableOpacity
+                onPress={() => setshowendTime(false)}
+                style={{position: 'absolute', zIndex: 11}}>
+                <Icon name="close" size={30} color="black" />
+              </TouchableOpacity>
+              <Text style={styles.header}>Select End Time</Text>
+            </View>
             {timeSlotError ? (
               <Text style={styles.errorText}>{timeSlotError}</Text>
             ) : null}
@@ -1214,7 +1368,6 @@ const BookingScreen = () => {
         </>
       ) : (
         <>
-          {/* <Skeleton style={{height: 50, borderRadius: 5}} /> */}
           <View style={styles.container2}>
             <Skeleton style={styles.skeleton} />
             <Text style={styles.text}>Prices will be shown here</Text>
@@ -1480,6 +1633,64 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     marginBottom: 10,
+  },
+
+  radioContainer: {
+    width: '100%',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    backgroundColor: '#fff',
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  radioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginRight: 10,
+  },
+  radioSelected: {
+    backgroundColor: '#007BFF',
+  },
+  radioLabel: {
+    fontSize: 16,
+  },
+
+
+
+
+  modalContainer2: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  pickerContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+  },
+  doneButton: {
+    marginTop: 10,
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  doneButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

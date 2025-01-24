@@ -181,9 +181,17 @@ console.log('userToken', userToken);
 
   return (
     <View style={styles.container}>
-      <View style={{display: 'flex', flexDirection: 'row', gap: 80}}>
-        <TouchableOpacity onPress={handleBackHome} style={styles.backButton}>
-          <Icon name={'arrow-back'} size={30} color={'black'} />
+     <View
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          position: 'relative',
+          marginTop: Platform.OS === 'ios' ? 50 : 0,
+        }}>
+        <TouchableOpacity
+          onPress={handleBackHome}
+          style={{position: 'absolute', zIndex: 11}}>
+          <Icon name="arrow-back" size={30} color="black" />
         </TouchableOpacity>
         <Text style={styles.header}>User Profile</Text>
       </View>
@@ -235,12 +243,14 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
+    width: '100%',
   },
   profileContainer: {
     alignItems: 'center',
     marginBottom: 20,
   },
-   profileImage: {
+  profileImage: {
     width: 100,
     height: 100,
     borderRadius: 50,

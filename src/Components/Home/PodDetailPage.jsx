@@ -170,7 +170,7 @@ const req = [
             data={images}
             renderItem={renderItem}
             sliderWidth={Dimensions.get('window').width}
-            itemWidth={300}
+            itemWidth={Platform.OS==="ios"?400:300}
             loop={true}
             onSnapToItem={index => setActiveIndex(index)}
           />
@@ -299,8 +299,8 @@ const req = [
   );
 };
 
-const paddingValue = Platform.OS === 'ios' ? 28 : 25;
-const paddingTopValue = Platform.OS === 'ios' ? 50 : 20;
+const paddingValue = Platform.OS === 'ios' ? 24 : 25;
+const paddingTopValue = Platform.OS === 'ios' ? 70 : 20;
 
 const styles = StyleSheet.create({
   backButton: {
